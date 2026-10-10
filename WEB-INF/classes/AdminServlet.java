@@ -90,6 +90,8 @@ public class AdminServlet extends HttpServlet {
             addQuestion(request, response);
         } else if ("/question-delete".equals(path)) {
             deleteQuestion(request, response);
+        } else if ("/account-add".equals(path)){
+            addAccount(request, response);
         } else {
             WebUtil.sendError(response, HttpServletResponse.SC_NOT_FOUND,
                               "Unknown admin action.");
@@ -664,6 +666,67 @@ public class AdminServlet extends HttpServlet {
             databaseError(response, e);
         }
     }
+
+    private void addAccount(
+        HttpServletRequest request,
+        HttpServletResponse response) throws IOException {
+
+    String username = request.getParameter("username");
+    String password = request.getParameter("password");
+
+    username = (username == null) ? "" : username.trim();
+
+    if (username.isEmpty() || password == null || password.isEmpty()) {
+        WebUtil.sendError(
+            response,
+            HttpServletResponse.SC_BAD_REQUEST,
+            "Username and password are required."
+        );
+        return;
+    }
+
+    try (Connection conn = Database.getConnection()) {
+
+        // Check whether the display name already exists
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT 1 FROM users WHERE user_display_name = ?")) {
+
+            check.setString(1, username);
+
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    WebUtil.sendError(
+                        response,
+                        HttpServletResponse.SC_CONFLICT,
+                        "That username already exists."
+                    );
+                    return;
+                }
+            }
+        }
+
+        // Create the new staff account
+        try (PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO users " +
+                "(user_display_name, password, play_mode, is_authenticated) " +
+                "VALUES (?, ?, 'staff', TRUE)")) {
+
+            insert.setString(1, username);
+            insert.setString(2, password);
+
+            insert.executeUpdate();
+        }
+
+        WebUtil.sendJson(
+            response,
+            HttpServletResponse.SC_OK,
+            "{\"success\":true}"
+        );
+
+    } catch (SQLException e) {
+        databaseError(response, e);
+    }
+}
 
     // ------------------------------------------------------------------
 

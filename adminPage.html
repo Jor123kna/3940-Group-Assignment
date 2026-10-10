@@ -119,6 +119,17 @@
 
     label.field { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 5px; }
 
+    input[type=password], textarea {
+      width: 100%;
+      font: inherit;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 3px solid transparent;
+      border-radius: 8px;
+      background: #fff;
+      color: #222;
+    }
+
     /* ---------- category list ---------- */
     ul.list { list-style: none; margin: 0; padding: 0; }
 
@@ -258,8 +269,8 @@
         <label class="field" for="uName">Username</label>
         <input type="text" id="uName">
         <label class="field" for="password">Password</label>
-        <input type="text" id="password">
-        <button class="primary">Create Account</button>
+        <input type="password" id="password">
+        <button id="createAccButton" type="button" class="primary">Create Account</button>
       </div>
     </section>
 
@@ -616,6 +627,43 @@
               say(message, true);
             });
   };
+
+  $("createAccButton").onclick = function() {
+    const username = $("uName").value.trim();
+    const password = $("password").value;
+    
+    if (username === "") {
+      say("Enter A Username", true);
+      $("uName").focus;
+      return;
+    }
+
+    if (password === "") {
+      say("Enter A Password", true);
+      $("password").focus;
+      return;
+    }
+
+    const button = $("createAccButton");
+    button.disabled = true;
+
+    request("POST", "admin/account-add",
+      form([
+        ["username", username],
+        ["password", password]
+      ]),
+      function(result) {
+        button.disabled = false;
+        $("uName").value = "";
+        $("password").value = "";
+      },
+      function(message) {
+        button.disabled = false;
+        say(message, true);
+      }
+    )
+    return;
+  }
 
   start();
 </script>
