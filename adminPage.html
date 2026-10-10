@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - Trivia</title>
+  <style>
+    :root {
+      --purple:      #46178f;
+      --purple-dark: #33106b;
+      --red:    #e21b3c;  --red-edge:   #a8132c;
+      --blue:   #1368ce;  --blue-edge:  #0d4a96;
+      --green:  #26890c;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 16px 16px 50px;
+      background: var(--purple);
+      color: #fff;
+      font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
+    }
+    .app { max-width: 1100px; margin: 0 auto; }
+
+    /* ---------- top bar ---------- */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .topbar a.home { color: #fff; font-weight: 700; text-decoration: none; opacity: .85; }
+    .topbar a.home:hover { opacity: 1; text-decoration: underline; }
+    .topbar h1 { margin: 0; font-size: 1.6rem; }
+    .topbar .who { font-weight: 700; opacity: .85; margin-right: 10px; }
+
+    /* ---------- message line ---------- */
+    .message {
+      min-height: 2.6em;
+      margin: 6px 0 12px;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+    .message.ok    { background: var(--green); }
+    .message.error { background: var(--red); }
+    .message:empty { background: transparent; }
+
+    /* ---------- two panels ---------- */
+    .panels {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--purple-dark);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 6px 0 rgba(0,0,0,.25);
+    }
+    .panel h2 { margin: 0 0 14px; font-size: 1.2rem; }
+    .panel h3 { margin: 22px 0 10px; font-size: 1rem; }
+
+    .empty { opacity: .75; margin: 8px 0 14px; }
+
+    /* ---------- buttons and inputs ---------- */
+    button {
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      border: 0;
+      border-radius: 8px;
+    }
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .primary {
+      padding: 11px 20px;
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 4px 0 var(--blue-edge);
+    }
+    .primary:hover:not(:disabled) { filter: brightness(1.1); }
+
+    .light {
+      padding: 9px 16px;
+      background: #fff;
+      color: var(--purple);
+      box-shadow: 0 3px 0 rgba(0,0,0,.3);
+    }
+
+    .danger {
+      padding: 7px 12px;
+      background: transparent;
+      color: #ffb3c0;
+      border: 2px solid #ffb3c0;
+      font-size: .85rem;
+      flex: none;
+    }
+    .danger:hover:not(:disabled) { background: var(--red); border-color: var(--red); color: #fff; }
+
+    input[type=text], textarea {
+      width: 100%;
+      font: inherit;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 3px solid transparent;
+      border-radius: 8px;
+      background: #fff;
+      color: #222;
+    }
+    textarea { resize: vertical; min-height: 70px; }
+    input[type=text]:focus, textarea:focus { outline: none; border-color: #ffd23f; }
+
+    label.field { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 5px; }
+
+    input[type=password], textarea {
+      width: 100%;
+      font: inherit;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 3px solid transparent;
+      border-radius: 8px;
+      background: #fff;
+      color: #222;
+    }
+
+    /* ---------- category list ---------- */
+    ul.list { list-style: none; margin: 0; padding: 0; }
+
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .cat-select {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      text-align: left;
+      background: transparent;
+      color: #fff;
+      border: 3px solid rgba(255,255,255,.35);
+      overflow-wrap: anywhere;
+    }
+    .cat-select:hover { background: rgba(255,255,255,.12); }
+    .cat-select .count {
+      flex: none;
+      min-width: 1.8em;
+      padding: 1px 8px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.2);
+      font-size: .85rem;
+      text-align: center;
+    }
+    .cat-row.selected .cat-select { background: #fff; color: var(--purple); border-color: #fff; }
+    .cat-row.selected .cat-select .count { background: var(--purple); color: #fff; }
+
+    /* ---------- question list ---------- */
+    .q-item {
+      background: rgba(255,255,255,.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .q-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .q-text { font-weight: 800; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .q-answers { list-style: none; margin: 8px 0 0; padding: 0; }
+    .q-answers li {
+      padding: 4px 10px;
+      margin-top: 4px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.08);
+      overflow-wrap: anywhere;
+    }
+    .q-answers li.correct { background: var(--green); font-weight: 700; }
+
+    /* ---------- add-question form ---------- */
+    .answer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .answer-row input[type=text] { margin: 0; flex: 1; }
+    .answer-row input[type=radio] { width: 22px; height: 22px; flex: none; accent-color: #26890c; }
+    .hint { font-size: .85rem; opacity: .8; margin: 0 0 10px; }
+
+    .inline-form { display: flex; flex-direction: column; }
+
+    @media (max-width: 800px) {
+      .panels { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <a class="home" href="index.html">&larr; Home</a>
+    <h1>Admin</h1>
+    <div>
+      <span id="who" class="who"></span>
+      <button id="logoutBtn" class="light" type="button">Logout</button>
+    </div>
+  </header>
+
+  <p id="message" class="message" role="status" aria-live="polite"></p>
+
+  <div class="panels" id="panels" hidden>
+
+    <!-- ================= categories ================= -->
+    <section class="panel">
+      <h2>Categories</h2>
+      <p id="categoriesEmpty" class="empty" hidden>No categories yet.</p>
+      <ul id="categoryList" class="list"></ul>
+
+      <h3>Add a category</h3>
+      <div class="inline-form">
+        <label class="field" for="catName">Name</label>
+        <input id="catName" type="text" maxlength="50">
+        <label class="field" for="catDesc">Description (optional)</label>
+        <input id="catDesc" type="text" maxlength="200">
+        <button id="addCategoryBtn" class="primary" type="button">Add category</button>
+      </div>
+    </section>
+
+    <!-- ================= questions ================= -->
+    <section class="panel">
+      <h2 id="questionsHeading">Questions</h2>
+      <p id="questionsEmpty" class="empty">Select a category to see and manage its questions.</p>
+      <div id="questionList"></div>
+
+      <div id="addQuestion" hidden>
+        <h3>Add a question to <span id="addQuestionTo"></span></h3>
+
+        <label class="field" for="qText">Question</label>
+        <textarea id="qText" maxlength="500"></textarea>
+
+        <label class="field">Answers <span style="font-weight:400">&mdash; tick the correct one</span></label>
+        <p class="hint">Fill in 2 to 4 answers. Leave the extra boxes empty for a true/false question.</p>
+
+        <div class="answer-row"><input type="radio" name="correct" value="0" checked aria-label="Answer 1 is correct"><input type="text" class="ans" maxlength="150" placeholder="Answer 1"></div>
+        <div class="answer-row"><input type="radio" name="correct" value="1" aria-label="Answer 2 is correct"><input type="text" class="ans" maxlength="150" placeholder="Answer 2"></div>
+        <div class="answer-row"><input type="radio" name="correct" value="2" aria-label="Answer 3 is correct"><input type="text" class="ans" maxlength="150" placeholder="Answer 3 (optional)"></div>
+        <div class="answer-row"><input type="radio" name="correct" value="3" aria-label="Answer 4 is correct"><input type="text" class="ans" maxlength="150" placeholder="Answer 4 (optional)"></div>
+
+        <button id="addQuestionBtn" class="primary" type="button">Add question</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Create Admin Accounts</h2>
+      <div class="inline-form">
+        <label class="field" for="uName">Username</label>
+        <input type="text" id="uName">
+        <label class="field" for="password">Password</label>
+        <input type="password" id="password">
+        <button id="createAccButton" type="button" class="primary">Create Account</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  function $(id) { return document.getElementById(id); }
+
+  // AJAX helper. Every request carries X-Requested-With (the server
+  // requires it on changes). A 401 means the login has expired.
+  function request(method, url, body, onSuccess, onError) {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState != 4) return;
+
+      if (this.status == 401) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      let data = null;
+      try { data = JSON.parse(this.responseText); } catch (e) { }
+
+      if (this.status == 200 && data !== null) {
+        onSuccess(data);
+      } else {
+        onError((data && data.error) ||
+                "Something went wrong (status " + this.status + ").");
+      }
+    };
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    if (body !== null) {
+      xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    }
+    xhttp.send(body);
+  }
+
+  function form(fields) {
+    return fields.map(function(f) {
+      return encodeURIComponent(f[0]) + "=" + encodeURIComponent(f[1]);
+    }).join("&");
+  }
+
+  function say(text, isError) {
+    const m = $("message");
+    m.textContent = text;
+    m.className = text ? (isError ? "message error" : "message ok") : "message";
+  }
+
+  // ------------------------------------------------------------------
+  // Start: must be logged in
+  // ------------------------------------------------------------------
+  function start() {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState != 4) return;
+
+      let session = { loggedIn: false };
+      try { session = JSON.parse(this.responseText); } catch (e) { }
+
+      if (!session.loggedIn) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      $("who").textContent = session.displayName;
+      $("panels").hidden = false;
+      loadCategories();
+    };
+    xhttp.open("GET", "session", true);
+    xhttp.send();
+  }
+
+  $("logoutBtn").onclick = function() {
+    request("POST", "logout", "", function() {
+      window.location.href = "index.html";
+    }, function() {
+      window.location.href = "index.html";
+    });
+  };
+
+  // ------------------------------------------------------------------
+  // Categories
+  // ------------------------------------------------------------------
+  let categories = [];
+  let selected = null;        // the selected category object, or null
+
+  function loadCategories(done) {
+    request("GET", "admin/categories", null, function(list) {
+      categories = list;
+
+      // keep the selection if that category still exists
+      if (selected) {
+        selected = categories.filter(function(c) {
+          return c.category_id == selected.category_id;
+        })[0] || null;
+      }
+
+      renderCategories();
+      renderQuestionPanel();
+      if (done) done();
+    }, function(message) {
+      say("Could not load categories. " + message, true);
+    });
+  }
+
+  function renderCategories() {
+    const list = $("categoryList");
+    list.textContent = "";
+    $("categoriesEmpty").hidden = categories.length > 0;
+
+    categories.forEach(function(category) {
+      const row = document.createElement("li");
+      row.className = "cat-row" +
+              (selected && selected.category_id == category.category_id ? " selected" : "");
+
+      const pick = document.createElement("button");
+      pick.type = "button";
+      pick.className = "cat-select";
+
+      const name = document.createElement("span");
+      name.textContent = category.category_name;
+      const count = document.createElement("span");
+      count.className = "count";
+      count.textContent = category.question_count;
+      count.title = category.question_count + " question(s)";
+      pick.appendChild(name);
+      pick.appendChild(count);
+      pick.onclick = function() { selectCategory(category); };
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "danger";
+      del.textContent = "Delete";
+      del.setAttribute("aria-label", "Delete category " + category.category_name);
+      del.onclick = function() { deleteCategory(category, del); };
+
+      row.appendChild(pick);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
+  function selectCategory(category) {
+    selected = category;
+    say("", false);
+    renderCategories();
+    renderQuestionPanel();
+    loadQuestions();
+  }
+
+  $("addCategoryBtn").onclick = function() {
+    const name = $("catName").value.trim();
+    if (name === "") {
+      say("Enter a category name.", true);
+      $("catName").focus();
+      return;
+    }
+
+    const button = $("addCategoryBtn");
+    button.disabled = true;
+
+    request("POST", "admin/category-add",
+            form([["name", name], ["description", $("catDesc").value]]),
+            function(result) {
+              button.disabled = false;
+              $("catName").value = "";
+              $("catDesc").value = "";
+              loadCategories(function() {
+                const added = categories.filter(function(c) {
+                  return c.category_id == result.category_id;
+                })[0];
+                if (added) selectCategory(added);      // this clears the message line...
+                say("Added category \"" + name + "\".", false);   // ...so say it afterwards
+              });
+            },
+            function(message) {
+              button.disabled = false;
+              say(message, true);
+            });
+  };
+
+  function deleteCategory(category, button) {
+    const n = category.question_count;
+    const warning = n > 0
+            ? "Delete the category \"" + category.category_name + "\" and its " +
+            n + " question" + (n == 1 ? "" : "s") + "?\n\nThis cannot be undone."
+            : "Delete the empty category \"" + category.category_name + "\"?";
+
+    if (!window.confirm(warning)) return;
+
+    button.disabled = true;
+
+    request("POST", "admin/category-delete",
+            form([["category_id", category.category_id]]),
+            function() {
+              say("Deleted category \"" + category.category_name + "\".", false);
+              if (selected && selected.category_id == category.category_id) {
+                selected = null;
+              }
+              loadCategories();
+            },
+            function(message) {
+              button.disabled = false;
+              say(message, true);
+            });
+  }
+
+  // ------------------------------------------------------------------
+  // Questions of the selected category
+  // ------------------------------------------------------------------
+  function renderQuestionPanel() {
+    if (!selected) {
+      $("questionsHeading").textContent = "Questions";
+      $("questionsEmpty").textContent = "Select a category to see and manage its questions.";
+      $("questionsEmpty").hidden = false;
+      $("questionList").textContent = "";
+      $("addQuestion").hidden = true;
+      return;
+    }
+
+    $("questionsHeading").textContent = "Questions in " + selected.category_name;
+    $("addQuestionTo").textContent = selected.category_name;
+    $("addQuestion").hidden = false;
+  }
+
+  let questionsToken = 0;
+
+  function loadQuestions() {
+    if (!selected) return;
+
+    const token = ++questionsToken;
+    const categoryId = selected.category_id;
+
+    $("questionList").textContent = "";
+    $("questionsEmpty").textContent = "Loading questions...";
+    $("questionsEmpty").hidden = false;
+
+    request("GET", "admin/questions?category_id=" + encodeURIComponent(categoryId),
+            null,
+            function(questions) {
+              if (token !== questionsToken) return;      // user picked another category meanwhile
+              renderQuestions(questions);
+            },
+            function(message) {
+              if (token !== questionsToken) return;
+              $("questionsEmpty").textContent = "";
+              say("Could not load questions. " + message, true);
+            });
+  }
+
+  function renderQuestions(questions) {
+    const holder = $("questionList");
+    holder.textContent = "";
+
+    if (questions.length == 0) {
+      $("questionsEmpty").textContent = "There are no questions in this category yet.";
+      $("questionsEmpty").hidden = false;
+      return;
+    }
+    $("questionsEmpty").hidden = true;
+
+    questions.forEach(function(q) {
+      const item = document.createElement("div");
+      item.className = "q-item";
+
+      const head = document.createElement("div");
+      head.className = "q-head";
+
+      const text = document.createElement("div");
+      text.className = "q-text";
+      text.textContent = q.question_text;
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "danger";
+      del.textContent = "Delete";
+      del.setAttribute("aria-label", "Delete question " + q.question_text);
+      del.onclick = function() { deleteQuestion(q, del); };
+
+      head.appendChild(text);
+      head.appendChild(del);
+      item.appendChild(head);
+
+      const answers = document.createElement("ul");
+      answers.className = "q-answers";
+      q.answers.forEach(function(a) {
+        const li = document.createElement("li");
+        li.textContent = (a.correct ? "\u2713 " : "") + a.answer_name;
+        if (a.correct) li.className = "correct";
+        answers.appendChild(li);
+      });
+      item.appendChild(answers);
+
+      holder.appendChild(item);
+    });
+  }
+
+  function deleteQuestion(q, button) {
+    if (!window.confirm("Delete this question?\n\n" + q.question_text)) return;
+
+    button.disabled = true;
+
+    request("POST", "admin/question-delete",
+            form([["question_id", q.question_id]]),
+            function() {
+              say("Question deleted.", false);
+              loadCategories(loadQuestions);       // refreshes the counts too
+            },
+            function(message) {
+              button.disabled = false;
+              say(message, true);
+            });
+  }
+
+  $("addQuestionBtn").onclick = function() {
+    if (!selected) { say("Select a category first.", true); return; }
+
+    const text = $("qText").value.trim();
+    if (text === "") { say("Enter the question.", true); $("qText").focus(); return; }
+
+    const boxes = Array.prototype.slice.call(document.querySelectorAll(".ans"));
+    const filled = boxes.filter(function(b) { return b.value.trim() !== ""; });
+    if (filled.length < 2) { say("Enter at least two answers.", true); return; }
+
+    const correct = parseInt(document.querySelector("input[name=correct]:checked").value, 10);
+    if (boxes[correct].value.trim() === "") {
+      say("The answer you ticked as correct is empty. Tick one that has text.", true);
+      return;
+    }
+
+    const fields = [["category_id", selected.category_id],
+      ["question_text", text],
+      ["correct", correct]];
+    boxes.forEach(function(b) { fields.push(["answer", b.value]); });
+
+    const button = $("addQuestionBtn");
+    button.disabled = true;
+
+    request("POST", "admin/question-add", form(fields),
+            function() {
+              button.disabled = false;
+              $("qText").value = "";
+              boxes.forEach(function(b) { b.value = ""; });
+              document.querySelector("input[name=correct][value='0']").checked = true;
+              say("Question added.", false);
+              loadCategories(loadQuestions);
+              $("qText").focus();
+            },
+            function(message) {
+              button.disabled = false;
+              say(message, true);
+            });
+  };
+
+  $("createAccButton").onclick = function() {
+    const username = $("uName").value.trim();
+    const password = $("password").value;
+    
+    if (username === "") {
+      say("Enter A Username", true);
+      $("uName").focus;
+      return;
+    }
+
+    if (password === "") {
+      say("Enter A Password", true);
+      $("password").focus;
+      return;
+    }
+
+    const button = $("createAccButton");
+    button.disabled = true;
+
+    request("POST", "admin/account-add",
+      form([
+        ["username", username],
+        ["password", password]
+      ]),
+      function(result) {
+        button.disabled = false;
+        $("uName").value = "";
+        $("password").value = "";
+      },
+      function(message) {
+        button.disabled = false;
+        say(message, true);
+      }
+    )
+    return;
+  }
+
+  start();
+</script>
+</body>
+</html>

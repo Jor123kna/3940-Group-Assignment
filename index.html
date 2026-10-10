@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trivia</title>
+  <style>
+    :root {
+      --purple:      #46178f;
+      --red:    #e21b3c;  --red-edge:   #a8132c;
+      --blue:   #1368ce;  --blue-edge:  #0d4a96;
+      --green:  #26890c;  --green-edge: #1a600a;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--purple);
+      color: #fff;
+      font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---------- top bar: Admin on the left, Login on the right ---------- */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      min-height: 76px;
+    }
+    .topbar .right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar.loading .left,
+    .topbar.loading .right { visibility: hidden; }   /* avoids a flash of the wrong buttons */
+
+    .btn {
+      display: inline-block;
+      font: inherit;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,.3);
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+
+    .btn.admin { background: var(--red); color: #fff; box-shadow: 0 4px 0 var(--red-edge); }
+    .btn.light { background: #fff; color: var(--purple); }
+
+    .who { font-weight: 700; opacity: .85; }
+
+    /* ---------- the middle of the page ---------- */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px 60px;
+    }
+    h1 {
+      margin: 0 0 34px;
+      font-size: clamp(2.4rem, 7vw, 4rem);
+      letter-spacing: 2px;
+    }
+
+    .big-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 28px;
+    }
+    .big {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: min(320px, 86vw);
+      height: 220px;
+      border-radius: 16px;
+      color: #fff;
+      text-decoration: none;
+      text-align: center;
+      transition: transform .08s;
+    }
+    .big:hover { transform: translateY(-3px); }
+    .big:active { transform: translateY(3px); }
+    .big .icon { font-size: 2.6rem; line-height: 1; }
+    .big .title { font-size: 2rem; font-weight: 800; }
+    .big .sub { font-size: 1rem; opacity: .9; }
+
+    .big.solo  { background: var(--blue);  box-shadow: 0 8px 0 var(--blue-edge); }
+    .big.multi { background: var(--green); box-shadow: 0 8px 0 var(--green-edge); }
+
+    @media (max-width: 560px) {
+      .big { height: 170px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .big { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar loading" id="topbar">
+  <div class="left">
+    <a id="adminBtn" class="btn admin" href="adminPage.html" hidden>Admin</a>
+  </div>
+  <div class="right">
+    <span id="who" class="who" hidden></span>
+    <a id="loginBtn" class="btn light" href="login.html">Login</a>
+    <button id="logoutBtn" class="btn light" type="button" hidden>Logout</button>
+  </div>
+</header>
+
+<main>
+  <h1>Trivia</h1>
+
+  <div class="big-buttons">
+    <a class="big solo" href="triviaSolo.html">
+      <span class="icon">&#9650;</span>
+      <span class="title">Solo Quiz</span>
+      <span class="sub">Test yourself</span>
+    </a>
+
+    <a class="big multi" href="lobby.html">
+      <span class="icon">&#9679;</span>
+      <span class="title">Multiplayer Quiz</span>
+      <span class="sub">Play with friends</span>
+    </a>
+  </div>
+</main>
+
+<script>
+  // Ask the server who is logged in, then show the right buttons.
+  function showLoggedIn(displayName) {
+    document.getElementById("adminBtn").hidden  = false;
+    document.getElementById("loginBtn").hidden  = true;
+    document.getElementById("logoutBtn").hidden = false;
+
+    const who = document.getElementById("who");
+    who.textContent = displayName;
+    who.hidden = false;
+  }
+
+  function showGuest() {
+    document.getElementById("adminBtn").hidden  = true;
+    document.getElementById("loginBtn").hidden  = false;
+    document.getElementById("logoutBtn").hidden = true;
+    document.getElementById("who").hidden       = true;
+  }
+
+  function loadSession() {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState != 4) return;
+
+      let session = { loggedIn: false };
+      if (this.status == 200) {
+        try { session = JSON.parse(this.responseText); } catch (e) { }
+      }
+
+      if (session.loggedIn) {
+        showLoggedIn(session.displayName);
+      } else {
+        showGuest();
+      }
+      document.getElementById("topbar").classList.remove("loading");
+    };
+    xhttp.open("GET", "session", true);
+    xhttp.send();
+  }
+
+  document.getElementById("logoutBtn").onclick = function() {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState != 4) return;
+      loadSession();
+    };
+    xhttp.open("POST", "logout", true);
+    xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhttp.send();
+  };
+
+  loadSession();
+</script>
+</body>
+</html>
