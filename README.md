@@ -1,3 +1,4 @@
+# Group Assignment 1
 ## Contributors
 
 Thank you to everyone in Set G making this project possible.
@@ -30,11 +31,9 @@ Thank you to everyone in Set G making this project possible.
 - Jeevan Jandu
 - Vicente Goncalves
 - Yehor Skudilov3940 Group Assignment 1
-(make it look pretty)
 
+## Features
 
-What does it do?
-...
 
 
 Requirements:
@@ -46,10 +45,7 @@ How to set it up:
 2.
 
 
-Features:
-
-
-Tools/API used:
+## Tools/API:
 
 
 Who did what/incharge of:
