@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lobby</title>
+    <style>
+        :root {
+            --purple: #46178f;
+            --purple-dark: #33106b;
+            --light-purple: #722fd5;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px 14px 40px;
+            background: var(--purple);
+            color: #fff;
+            font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
+            overflow: hidden;
+        }
+
+        h1 {
+            margin: 0 0 14px;
+            text-align: center;
+            font-size: 2rem;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 25px;
+        }
+
+        #leaderboard {
+            width: 55%;
+            height: 60vh;
+            margin: 0 auto;
+            padding: 10px;
+            border-radius: 12px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background-color: var(--light-purple);
+            box-sizing: border-box;
+            border: 3px solid var();
+        }
+
+        #participant_list {
+            list-style: none;
+            counter-reset: participant-counter;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ------- Scroll Bar Decoration -------*/
+        /* Firefox */
+        #leaderboard {
+            scrollbar-width: thin;
+            scrollbar-color: var(--light-purple) var(--purple-dark);
+        }
+
+        /* Chrome, Edge, Safari */
+        #leaderboard::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #leaderboard::-webkit-scrollbar-track {
+            background: var(--purple-dark);
+            border-radius: 10px;
+        }
+
+        #leaderboard::-webkit-scrollbar-thumb {
+            background: var(--light-purple);
+            border-radius: 10px;
+            border: 2px solid var(--purple-dark);
+        }
+
+        #leaderboard::-webkit-scrollbar-thumb:hover {
+            background: #9257e8;
+        }
+
+        /* ---------------------------- */
+
+        .participant {
+            counter-increment: participant-counter;
+            background: var(--purple-dark);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 6px;
+            font-size: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .participant::before {
+            content: counter(participant-counter) ".";
+            margin-right: 8px;
+        }
+
+        .participant-name {
+            text-align: left;
+        }
+
+        .participant-score {
+            margin-left: auto;
+        }
+
+        h4 {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Scoreboard</h1>
+    <h2 id="position">Your position:</h2>
+    <h2 id="score">Your score:</h2>
+
+    <div id="leaderboard">
+        <ol id="participant_list">
+            <!--
+            <li class="participant">
+                <span class="participant-name">John Doe</span>
+                <span class="participant-score">500</span>
+            </li>
+            -->
+        </ol>
+    </div>
+    <h4><i>Waiting for host to start the next round.</i></h4>
+</body>
+
+</html>
