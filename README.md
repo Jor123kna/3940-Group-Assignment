@@ -2,8 +2,6 @@
 
 Thank you to everyone in Set G making this project possible.
 
-### Groups
-
 ##### Project Manager
 - Jorja Knaus
 
