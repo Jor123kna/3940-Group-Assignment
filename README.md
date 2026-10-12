@@ -96,9 +96,6 @@ Thank you to everyone in Set G for making this project possible.
 - Real-Time Updates
 - Database Integration
 
-## Requirements:
-- Tomcat
-
 ## Tools/API:
 ##### Frontend
 - HTML
@@ -123,5 +120,3 @@ Thank you to everyone in Set G for making this project possible.
 - Git / GitHub
 - Figma
 - Google Docs
-
-
