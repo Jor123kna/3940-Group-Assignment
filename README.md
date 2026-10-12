@@ -101,9 +101,16 @@ Thank you to everyone in Set G for making this project possible.
 
 ## Tools/API:
 - Discord
-- Git
-- Github
+- Google Docs
+- Figma
+- Git and Github
+- Tomcat
 - Sourcetree
 - Supabase
+- Servlet API (Jakarta Servlet)
+- Quiz API
+- Websocket API
+- JDBC API
+- AJAX/Fetch API
 
 
