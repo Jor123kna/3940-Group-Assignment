@@ -100,17 +100,28 @@ Thank you to everyone in Set G for making this project possible.
 - Tomcat
 
 ## Tools/API:
-- Discord
-- Google Docs
-- Figma
-- Git and Github
-- Tomcat
-- Sourcetree
+##### Frontend
+- HTML
+- CSS
+- JavaScript
+- AJAX / Fetch API
+
+##### Backend
+- Java
+- Apache Tomcat
+- Jakarta Servlets
+- JDBC
+
+##### Database
 - Supabase
-- Servlet API (Jakarta Servlet)
-- Quiz API
-- Websocket API
-- JDBC API
-- AJAX/Fetch API
+- PostgreSQL
+
+##### Real-Time Communication
+- WebSockets
+
+##### Development & Collaboration
+- Git / GitHub
+- Figma
+- Google Docs
 
 
