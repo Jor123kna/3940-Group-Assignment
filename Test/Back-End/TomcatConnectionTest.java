@@ -43,7 +43,7 @@ public class TomcatConnectionTest {
                 + "auto-start it. Start Tomcat (bin/startup.bat) or set CATALINA_HOME.");
         }
 
-        System.out.println("Tomcat is not running - starting it from " + home);
+        System.out.println("      \u001B[33m> Tomcat was not running - starting it from " + home + " ...\u001B[0m");
         startTomcat(home);
 
         for (int i = 0; i < 60; i++) {
