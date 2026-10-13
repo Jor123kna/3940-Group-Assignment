@@ -7,6 +7,9 @@ echo %cmdcmdline% | find /i "%~nx0" >nul && set "DOUBLE_CLICKED=1"
 
 set "RESULT=1"
 
+if not defined TEST_LOGIN_NAME set "TEST_LOGIN_NAME=joetest"
+if not defined TEST_LOGIN_PASSWORD set "TEST_LOGIN_PASSWORD=123"
+
 pushd "%~dp0.."
 
 if defined CATALINA_HOME (
