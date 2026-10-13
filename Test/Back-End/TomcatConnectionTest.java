@@ -21,7 +21,7 @@ public class TomcatConnectionTest {
     private static final String APP_NAME = "/3940-Group-Assignment";
 
     private static String SERVER;
-    private static String APP;
+    static String APP;
     private static HttpClient client;
 
     @BeforeAll
