@@ -150,7 +150,7 @@ function quizStatus(text, kind) {
     $("quizStatus").hidden = text === "";
 }
 
-// called by lobby.js once we know this is a staff account
+// called by triviaUser's entry script once we know this is a staff account
 async function loadQuizCategories() {
     let categories;
     try {

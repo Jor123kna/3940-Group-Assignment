@@ -1,6 +1,6 @@
 "use strict";
 
-// Entry point of the multiplayer page. Loaded last, after
+// Entry point of the triviaUser multiplayer page. Loaded last, after
 //   js/lobby/hub.js     the connection to the chat hub
 //   js/lobby/admin.js   what a staff account sees and does
 //   js/lobby/tablet.js  what everybody else sees and does

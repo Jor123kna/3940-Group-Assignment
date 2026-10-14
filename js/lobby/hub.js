@@ -34,7 +34,7 @@
 // plugs it into `role` below.
 
 // The hub lives in Tomcat's "examples" webapp. To use another server, open the
-// page as lobby.html?hub=host:port
+// page as triviaUser.html?hub=host:port
 const hub = new URLSearchParams(location.search).get("hub") || `${location.hostname || "localhost"}:8081`;
 const CHAT_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${hub}/examples/websocket/chat`;
 const RETRY_MS = 3000;
@@ -43,7 +43,7 @@ const GIVE_UP_MS = 6000;   // no answer from the hub for this long = tell the us
 // js/common.js and js/quiz.js must be deployed next to the lobby scripts
 if (typeof $ !== "function" || typeof choiceButton !== "function") {
     document.getElementById("connection").textContent = "Missing js/common.js or js/quiz.js";
-    throw new Error("the lobby needs js/common.js and js/quiz.js");
+    throw new Error("the multiplayer page needs js/common.js and js/quiz.js");
 }
 
 const nonce = Math.random().toString(36).slice(2, 8);

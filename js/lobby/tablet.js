@@ -6,7 +6,7 @@ const ADMIN_GRACE_MS = 10000;   // wait this long for a vanished admin to come b
 
 let groups = {};          // id -> { id, name, admin, timer }   the groups on offer
 let joined = null;        // id of the group this tablet joined
-let received = null;      // { id, media, text, answers, chosen, correct, points }   correct: null until the admin reveals it
+let received = null;      // { id, media, text, answers, chosen, submitted, correct, points }
 let board = [];           // the leaderboard the admin sent: [{ id, name, points }]
 const NAME_KEY = "lobbyGuestName";
 
@@ -32,7 +32,7 @@ function onClosed(admin, [id]) {
 function onQuestion(admin, [groupId, id, media, text, ...answers]) {
     if (joined !== groupId || (received && received.id === id)) return;
 
-    received = { id, media, text, answers, chosen: null, correct: null, points: 0 };
+    received = { id, media, text, answers, chosen: null, submitted: false, correct: null, points: 0 };
     renderTablet();
 }
 
@@ -141,7 +141,7 @@ $("nameInput").oninput = () => setNotice($("nameNotice"));
 
 let guest = true;
 
-// called by lobby.js once the session is known
+// called by triviaUser's entry script once the session is known
 function startTablet(session) {
     guest = !session.loggedIn;
 
@@ -178,10 +178,14 @@ function renderTablet() {
     $("quiz").hidden = received === null;
     if (!received) return;
 
-    const answered = received.chosen !== null;
+    const answered = received.submitted;
     const revealed = received.correct !== null;
 
     $("questionText").textContent = received.text;
+    $("playerName").textContent = myName || hubName || "Guest";
+    $("categoryName").textContent = "Multiplayer";
+    $("questionNumber").textContent = "Current question";
+    $("playerScore").textContent = `${(board.find((row) => row.id === myId) || { points: 0 }).points} points`;
     showMedia($("questionMedia"), received.media ? { type: "image", url: received.media } : null);   // "" = no picture
     setNotice(...feedback(answered, revealed));
 
@@ -196,13 +200,17 @@ function renderTablet() {
         button.onclick = () => chooseAnswer(i);
         return button;
     }));
+    $("submitAnswer").disabled = received.chosen === null || answered || revealed;
 }
 
 // the message under the question: [element, text, kind] for setNotice
 function feedback(answered, revealed) {
     const target = $("feedback");
 
-    if (!revealed) return [target, answered ? "Answer sent. Waiting for the others..." : "", "wait"];
+    if (!revealed) {
+        return [target, answered ? "Answer sent. Waiting for the others..." :
+            received.chosen === null ? "" : "Answer selected. Click Submit Answer.", "wait"];
+    }
 
     const right = received.answers[received.correct];
     if (!answered) return [target, `No answer from you. The right answer was ${right}.`, "info"];
@@ -213,12 +221,23 @@ function feedback(answered, revealed) {
 }
 
 function chooseAnswer(index) {
-    if (received.chosen !== null || received.correct !== null || !isConnected()) return;
+    if (!received || received.submitted || received.correct !== null) return;
 
     received.chosen = index;
-    wsSendMessage(`A|${groups[joined].admin}|${joined}|${received.id}|${index}|${myName}`);   // addressed to the admin
     renderTablet();
 }
+
+$("submitAnswer").onclick = () => {
+    if (!received || received.chosen === null || received.submitted || received.correct !== null) return;
+    if (!isConnected()) {
+        say("Not connected yet.");
+        return;
+    }
+
+    received.submitted = true;
+    wsSendMessage(`A|${groups[joined].admin}|${joined}|${received.id}|${received.chosen}|${myName}`);
+    renderTablet();
+};
 
 // the leaderboard, below the question
 function renderTabletBoard() {

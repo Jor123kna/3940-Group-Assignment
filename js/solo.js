@@ -1,11 +1,11 @@
 "use strict";
 
 // Game state
-//   category  : the category being played
-//   questions : the questions in this category
-//   index     : which question is on screen
-//   results   : question_id -> { answerId, correct, correctAnswerId }
-//   pending   : question_id of the answers being checked by the server
+// category: the category being played
+// questions: the questions in this category
+// index: which question is on screen
+// results: question_id -> { answerId, correct, correctAnswerId }
+// pending: question_id of the answers being checked by the server
 let game = null;
 
 function setStatus(text, kind) {
@@ -13,7 +13,7 @@ function setStatus(text, kind) {
     $("status").hidden = text === "";
 }
 
-// ---------- categories: one tab per category, along the top ----------
+// categories: one tab per category, along the top
 
 async function loadCategories() {
     let categories;
@@ -60,7 +60,7 @@ async function selectCategory(button, category) {
         return;
     }
 
-    if (game !== thisGame) return;   // the user already picked another category
+    if (game !== thisGame) return; // the user already picked another category
 
     if (questions.length === 0) {
         setStatus(`There are no questions in ${category.category_name} yet.`, "info");
@@ -72,7 +72,7 @@ async function selectCategory(button, category) {
     renderQuestion();
 }
 
-// ---------- the question on screen ----------
+// the question on screen
 
 function renderQuestion() {
     const q = game.questions[game.index];
@@ -147,7 +147,7 @@ async function chooseAnswer(q, answer) {
     if (failure) setNotice($("feedback"), `Could not check your answer. ${failure.message}`, "error");
 }
 
-// ---------- Back / Next / results ----------
+// Back / Next / results
 
 $("backBtn").onclick = () => {
     if (game && game.index > 0) {
@@ -157,7 +157,7 @@ $("backBtn").onclick = () => {
 };
 
 $("nextBtn").onclick = () => {
-    if (!game || !game.results[game.questions[game.index].question_id]) return;   // must answer first
+    if (!game || !game.results[game.questions[game.index].question_id]) return; // must answer first
 
     if (game.index < game.questions.length - 1) {
         game.index++;

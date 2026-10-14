@@ -179,3 +179,84 @@ button:focus-visible {
     font-size: 1.25rem;
   }
 }
+
+/* Multiplayer host and player controls. */
+.connection { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; }
+.connection::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--dot, #999);
+}
+.connection[data-state="on"] { --dot: #4cd137; }
+.connection[data-state="off"] { --dot: var(--red); }
+.connection[data-state="try"] { --dot: var(--yellow); }
+
+.panel { margin-bottom: 18px; }
+#groupTitle { margin: 0 0 10px; font-size: 1.15rem; font-weight: 800; overflow-wrap: anywhere; }
+#members { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+#members li {
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: rgba(255,255,255,.12);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+#quizCategories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+#quizCategories .tab:disabled { opacity: .45; cursor: not-allowed; }
+#quizPreview { margin-bottom: 8px; }
+#quizProgress { margin-right: 6px; }
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+#results { padding: 14px; border-radius: 8px; background: rgba(255,255,255,.08); }
+#resultsQuestion { margin: 0 0 10px; font-weight: 800; overflow-wrap: anywhere; }
+#resultsList li {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.1);
+  overflow-wrap: anywhere;
+}
+#resultsList li.correct { background: var(--green); }
+#resultsList small { display: block; opacity: .85; }
+
+.board { counter-reset: place; }
+.board li {
+  counter-increment: place;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.1);
+}
+.board li::before { content: counter(place); flex: none; min-width: 1.4em; font-weight: 800; opacity: .7; }
+.board li > span { flex: 1; font-weight: 700; overflow-wrap: anywhere; }
+.board li > strong { flex: none; }
+.board li.leader { background: var(--gold); }
+.board li.me { outline: 3px solid #fff; }
+#revealBtn { margin-top: 10px; }
+
+#nameForm { display: grid; gap: 10px; }
+#nameForm .muted, #nameForm .notice { margin: 0; }
+#nameNotice:empty { display: none; }
+#groupList li { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+#groupList strong { font-weight: 800; overflow-wrap: anywhere; }
+#joinedPanel > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+#joinedPanel > header h2 { margin: 0; overflow-wrap: anywhere; }
+details { margin-top: 24px; }
+textarea { margin-top: 8px; font-family: monospace; font-size: .85rem; }

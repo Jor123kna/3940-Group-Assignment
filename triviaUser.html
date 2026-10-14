@@ -4,65 +4,152 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trivia - Multiplayer Player</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/quiz.css" />
     <link rel="stylesheet" href="css/triviaUser.css" />
+    <script src="js/common.js" defer></script>
+    <script src="js/quiz.js" defer></script>
+    <script src="js/lobby/hub.js" defer></script>
+    <script src="js/lobby/admin.js" defer></script>
+    <script src="js/lobby/tablet.js" defer></script>
+    <script src="js/lobby.js" defer></script>
   </head>
   <body>
     <main>
       <header>
+        <a class="home" href="index.html">&larr; Home</a>
         <h1>Trivia</h1>
         <p>Multiplayer Quiz</p>
+        <span id="connection" class="connection" data-state="try" role="status" aria-live="polite">Connecting...</span>
       </header>
 
-      <section class="game-panel" aria-label="Multiplayer quiz">
-        <div class="game-info">
-          <p>Player: <strong id="playerName">Guest</strong></p>
-          <p class="timer">
-            Time left: <strong id="timeRemaining">30 seconds</strong>
-          </p>
-          <p>Score: <strong id="playerScore">0 points</strong></p>
-        </div>
+      <p id="notice" class="notice" role="alert"></p>
 
-        <p class="progress">
-          <span id="categoryName">Geography</span> &bull;
-          <span id="questionNumber">Question 1 of 10</span>
-        </p>
-        <section class="question" aria-labelledby="questionText">
-          <h2 id="questionText">What is the capital of Canada?</h2>
-          <!-- Replace this optional placeholder with question media when available. -->
-          <div id="questionMedia" class="media-placeholder" hidden>
-            Optional question image or video
+      <!-- Staff host controls are added to the original player page. -->
+      <div id="adminView" hidden>
+        <section class="panel">
+          <h2>Your group</h2>
+          <form id="groupForm">
+            <label>Group name
+              <input id="groupName" type="text" maxlength="30" autocomplete="off" />
+            </label>
+            <button class="btn" type="submit">Create group</button>
+          </form>
+          <div id="groupInfo" hidden>
+            <p id="groupTitle"></p>
+            <ul id="members"></ul>
+            <button id="closeGroupBtn" class="btn red" type="button">Close group</button>
           </div>
         </section>
 
-        <fieldset>
-          <legend>Choose one answer</legend>
-          <div id="choices" class="answers">
-            <button type="button" class="answer answer-a" id="answerA">
-              <span class="shape" aria-hidden="true">&#9650;</span
-              ><span>Toronto</span>
-            </button>
-            <button type="button" class="answer answer-b" id="answerB">
-              <span class="shape" aria-hidden="true">&#9670;</span
-              ><span>Ottawa</span>
-            </button>
-            <button type="button" class="answer answer-c" id="answerC">
-              <span class="shape" aria-hidden="true">&#9679;</span
-              ><span>Vancouver</span>
-            </button>
-            <button type="button" class="answer answer-d" id="answerD">
-              <span class="shape" aria-hidden="true">&#9632;</span
-              ><span>Montreal</span>
-            </button>
+        <section id="askPanel" class="panel" hidden>
+          <h2>Pick a quiz</h2>
+          <p id="quizStatus" class="notice" data-kind="info">Loading categories...</p>
+          <nav id="quizCategories" aria-label="Quiz categories"></nav>
+          <div id="quizPreview" hidden>
+            <p class="progress">
+              <span id="quizProgress"></span>
+              <span id="liveBadge" class="badge host" hidden>Asked now</span>
+            </p>
+            <div class="question-box">
+              <h2 id="previewQuestion"></h2>
+              <img id="previewMedia" alt="" hidden />
+            </div>
+            <div id="previewAnswers" class="choices revealed" aria-label="Answers"></div>
+            <footer class="controls">
+              <button id="prevQuestionBtn" class="btn light" type="button">Back</button>
+              <button id="askBtn" class="btn green" type="button">Ask the group</button>
+              <button id="nextQuestionBtn" class="btn light" type="button">Next</button>
+            </footer>
           </div>
-        </fieldset>
+          <h3>Answers received</h3>
+          <p id="noQuestion" class="muted">Nothing asked yet.</p>
+          <div id="results" hidden>
+            <p id="resultsQuestion"></p>
+            <ol id="resultsList"></ol>
+            <p id="resultsCount" class="muted"></p>
+            <button id="revealBtn" class="btn light small" type="button">Show the answer now</button>
+          </div>
+          <h3>Leaderboard</h3>
+          <p id="noBoard" class="muted">Nobody has joined yet.</p>
+          <ol id="adminBoard" class="board" hidden></ol>
+        </section>
+      </div>
 
-        <button type="button" class="submit" id="submitAnswer">
-          Submit Answer
-        </button>
-        <p class="host-note" id="gameStatus" aria-live="polite">
-          The host controls when the next question appears.
-        </p>
-      </section>
+      <div id="tabletView">
+        <form id="nameForm" class="panel">
+          <label>Your name
+            <input id="nameInput" type="text" maxlength="20" autocomplete="off" placeholder="For example Grandma" />
+          </label>
+          <button class="btn small" type="submit">Save name</button>
+          <p id="nameHint" class="muted"></p>
+          <p id="nameNotice" class="notice" role="status"></p>
+        </form>
+
+        <section id="groupsPanel" class="panel">
+          <h2>Join a group</h2>
+          <p id="noGroups" class="muted">No groups yet. Waiting for an admin to create one...</p>
+          <ul id="groupList"></ul>
+        </section>
+
+        <section id="joinedPanel" hidden>
+          <header>
+            <h2 id="joinedName"></h2>
+            <button id="leaveBtn" class="btn light small" type="button">Leave group</button>
+          </header>
+
+          <p id="waiting" class="muted">Waiting for the admin to send a question...</p>
+
+          <section class="game-panel" aria-label="Multiplayer quiz" id="quiz" hidden>
+            <div class="game-info">
+              <p>Player: <strong id="playerName">Guest</strong></p>
+              <p class="timer">Time left: <strong id="timeRemaining">30 seconds</strong></p>
+              <p>Score: <strong id="playerScore">0 points</strong></p>
+            </div>
+
+            <p class="progress">
+              <span id="categoryName">Geography</span> &bull;
+              <span id="questionNumber">Question 1 of 10</span>
+            </p>
+            <section class="question" aria-labelledby="questionText">
+              <h2 id="questionText">What is the capital of Canada?</h2>
+              <img id="questionMedia" class="media-placeholder" alt="" hidden />
+            </section>
+
+            <p id="feedback" class="notice" aria-live="polite"></p>
+            <fieldset>
+              <legend>Choose one answer</legend>
+              <div id="choices" class="answers">
+                <button type="button" class="answer answer-a" id="answerA">
+                  <span class="shape" aria-hidden="true">&#9650;</span><span>Toronto</span>
+                </button>
+                <button type="button" class="answer answer-b" id="answerB">
+                  <span class="shape" aria-hidden="true">&#9670;</span><span>Ottawa</span>
+                </button>
+                <button type="button" class="answer answer-c" id="answerC">
+                  <span class="shape" aria-hidden="true">&#9679;</span><span>Vancouver</span>
+                </button>
+                <button type="button" class="answer answer-d" id="answerD">
+                  <span class="shape" aria-hidden="true">&#9632;</span><span>Montreal</span>
+                </button>
+              </div>
+            </fieldset>
+            <button type="button" class="submit" id="submitAnswer">Submit Answer</button>
+            <p class="host-note" id="gameStatus" aria-live="polite">
+              The host controls when the next question appears.
+            </p>
+          </section>
+
+          <h3>Leaderboard</h3>
+          <p id="noScores" class="muted">No scores yet.</p>
+          <ol id="board" class="board" hidden></ol>
+        </section>
+      </div>
+
+      <details>
+        <summary>Connection log</summary>
+        <textarea id="log" rows="8" readonly></textarea>
+      </details>
     </main>
   </body>
 </html>
