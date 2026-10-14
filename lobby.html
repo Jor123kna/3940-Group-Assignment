@@ -46,20 +46,32 @@
     </section>
 
     <section id="askPanel" class="panel" hidden>
-      <h2>Ask a question</h2>
+      <h2>Pick a quiz</h2>
 
-      <form id="questionForm">
-        <label>Question
-          <input id="questionInput" type="text" maxlength="200" autocomplete="off">
-        </label>
+      <!-- the categories and their questions come from the database, like the solo quiz -->
+      <p id="quizStatus" class="notice" data-kind="info">Loading categories...</p>
+      <nav id="quizCategories" aria-label="Quiz categories"></nav>
 
-        <fieldset id="answerRows">
-          <legend>Answers (tick the correct one)</legend>
-          <!-- the answer rows are added by lobby.js -->
-        </fieldset>
+      <div id="quizPreview" hidden>
+        <p class="progress">
+          <span id="quizProgress"></span>
+          <span id="liveBadge" class="badge host" hidden>Asked now</span>
+        </p>
 
-        <button class="btn" type="submit">Send to the group</button>
-      </form>
+        <div class="question-box">
+          <h2 id="previewQuestion"></h2>
+          <img id="previewMedia" alt="" hidden>
+        </div>
+
+        <!-- what the group will see; only you see which answer is correct -->
+        <div id="previewAnswers" class="choices revealed" aria-label="Answers"></div>
+
+        <footer class="controls">
+          <button id="prevQuestionBtn" class="btn light" type="button">Back</button>
+          <button id="askBtn" class="btn green" type="button">Ask the group</button>
+          <button id="nextQuestionBtn" class="btn light" type="button">Next</button>
+        </footer>
+      </div>
 
       <h3>Answers received</h3>
       <p id="noQuestion" class="muted">Nothing asked yet.</p>
@@ -68,13 +80,29 @@
         <p id="resultsQuestion"></p>
         <ol id="resultsList"></ol>
         <p id="resultsCount" class="muted"></p>
+
+        <!-- sent by itself when everybody has answered; use this if a tablet never does -->
+        <button id="revealBtn" class="btn light small" type="button">Show the answer now</button>
       </div>
+
+      <h3>Leaderboard</h3>
+      <p id="noBoard" class="muted">Nobody has joined yet.</p>
+      <ol id="adminBoard" class="board" hidden></ol>
     </section>
 
   </div>
 
   <!-- ================= tablet ================= -->
   <div id="tabletView">
+
+    <form id="nameForm" class="panel">
+      <label>Your name
+        <input id="nameInput" type="text" maxlength="20" autocomplete="off" placeholder="For example Grandma">
+      </label>
+      <button class="btn small" type="submit">Save name</button>
+      <p id="nameHint" class="muted"></p>
+      <p id="nameNotice" class="notice" role="status"></p>
+    </form>
 
     <section id="groupsPanel" class="panel">
       <h2>Join a group</h2>
@@ -93,12 +121,17 @@
       <div id="quiz" hidden>
         <div class="question-box">
           <h2 id="questionText"></h2>
+          <img id="questionMedia" alt="" hidden>
         </div>
 
         <p id="feedback" class="notice" aria-live="polite"></p>
 
         <div id="choices" class="choices"></div>
       </div>
+
+      <h3>Leaderboard</h3>
+      <p id="noScores" class="muted">No scores yet.</p>
+      <ol id="board" class="board" hidden></ol>
     </section>
 
   </div>
