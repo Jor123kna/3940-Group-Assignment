@@ -1,115 +1,113 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lobby</title>
-  <style>
-    :root {
-      --purple: #46178f;
-      --purple-dark: #33106b;
-      --light-purple: #722fd5;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      padding: 20px 14px 40px;
-      background: var(--purple);
-      color: #fff;
-      font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
-      overflow: hidden;
-    }
-
-    h1 {
-      margin: 0 0 14px;
-      text-align: center;
-      font-size: 2rem;
-      letter-spacing: 1px;
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    #lobby_box {
-      width: 50%;
-      height: 60vh;
-      margin: 0 auto;
-      padding: 10px;
-      border-radius: 12px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      background-color: var(--light-purple);
-      box-sizing: border-box;
-      border: 3px solid var();
-    }
-
-    #participant_list {
-      list-style-position: inside;
-      padding: 0;
-      margin: 0;
-    }
-
-    /* ------- Scroll Bar Decoration -------*/
-    /* Firefox */
-    #lobby_box {
-      scrollbar-width: thin;
-      scrollbar-color: var(--light-purple) var(--purple-dark);
-    }
-
-    /* Chrome, Edge, Safari */
-    #lobby_box::-webkit-scrollbar {
-      width: 10px;
-    }
-
-    #lobby_box::-webkit-scrollbar-track {
-      background: var(--purple-dark);
-      border-radius: 10px;
-    }
-
-    #lobby_box::-webkit-scrollbar-thumb {
-      background: var(--light-purple);
-      border-radius: 10px;
-      border: 2px solid var(--purple-dark);
-    }
-
-    #lobby_box::-webkit-scrollbar-thumb:hover {
-      background: #9257e8;
-    }
-    /* ---------------------------- */
-
-    .lobby {
-      background: var(--purple-dark);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      margin-bottom: 6px;
-      font-size: 25px;
-    }
-
-    h4 {
-      text-align: center;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multiplayer - Trivia</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/quiz.css">
+  <link rel="stylesheet" href="css/lobby.css">
+  <script src="js/common.js" defer></script>
+  <script src="js/quiz.js" defer></script>
+  <script src="js/lobby/hub.js" defer></script>
+  <script src="js/lobby/admin.js" defer></script>
+  <script src="js/lobby/tablet.js" defer></script>
+  <script src="js/lobby.js" defer></script>
 </head>
-
 <body>
-  <div>
-    <h1>Welcome to the lobby!</h1>
-    <br>
-    <!-- The typed username can be displayed here -->
-    <h2>Your name is displayed as: <i id="username"></i></h2>
-    <h2>List of participants</h2>
+<div class="app">
+
+  <header class="topbar">
+    <a class="home" href="index.html">&larr; Home</a>
+    <h1>Multiplayer</h1>
+    <span id="connection" class="connection" data-state="try" role="status" aria-live="polite">Connecting...</span>
+  </header>
+
+  <p id="notice" class="notice" role="alert"></p>
+
+  <!-- ================= admin ================= -->
+  <div id="adminView" hidden>
+
+    <section class="panel">
+      <h2>Your group</h2>
+
+      <form id="groupForm">
+        <label>Group name
+          <input id="groupName" type="text" maxlength="30" autocomplete="off">
+        </label>
+        <button class="btn" type="submit">Create group</button>
+      </form>
+
+      <div id="groupInfo" hidden>
+        <p id="groupTitle"></p>
+        <ul id="members"></ul>
+        <button id="closeGroupBtn" class="btn red" type="button">Close group</button>
+      </div>
+    </section>
+
+    <section id="askPanel" class="panel" hidden>
+      <h2>Ask a question</h2>
+
+      <form id="questionForm">
+        <label>Question
+          <input id="questionInput" type="text" maxlength="200" autocomplete="off">
+        </label>
+
+        <fieldset id="answerRows">
+          <legend>Answers (tick the correct one)</legend>
+          <!-- the answer rows are added by lobby.js -->
+        </fieldset>
+
+        <button class="btn" type="submit">Send to the group</button>
+      </form>
+
+      <h3>Answers received</h3>
+      <p id="noQuestion" class="muted">Nothing asked yet.</p>
+
+      <div id="results" hidden>
+        <p id="resultsQuestion"></p>
+        <ol id="resultsList"></ol>
+        <p id="resultsCount" class="muted"></p>
+      </div>
+    </section>
+
   </div>
 
-  <div id="lobby_box">
-    <ol id="participant_list">
-      <!-- participants can get added to the ordered list with this format: <li class="lobby">John Doe</li> -->
-    </ol>
+  <!-- ================= tablet ================= -->
+  <div id="tabletView">
+
+    <section id="groupsPanel" class="panel">
+      <h2>Join a group</h2>
+      <p id="noGroups" class="muted">No groups yet. Waiting for an admin to create one...</p>
+      <ul id="groupList"></ul>
+    </section>
+
+    <section id="joinedPanel" class="panel" hidden>
+      <header>
+        <h2 id="joinedName"></h2>
+        <button id="leaveBtn" class="btn light small" type="button">Leave group</button>
+      </header>
+
+      <p id="waiting" class="muted">Waiting for the admin to send a question...</p>
+
+      <div id="quiz" hidden>
+        <div class="question-box">
+          <h2 id="questionText"></h2>
+        </div>
+
+        <p id="feedback" class="notice" aria-live="polite"></p>
+
+        <div id="choices" class="choices"></div>
+      </div>
+    </section>
+
   </div>
-  <h4><i>Waiting for host to start...</i></h4>
+
+  <details>
+    <summary>Connection log (everything the chat hub delivers to this browser)</summary>
+    <textarea id="log" rows="8" readonly></textarea>
+  </details>
+
+</div>
 </body>
-
 </html>

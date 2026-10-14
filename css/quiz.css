@@ -1,0 +1,97 @@
+/* The quiz screen, shared by the solo and the multiplayer pages. */
+
+.progress {
+    margin: 0 0 8px;
+    font-size: .9rem;
+    font-weight: 700;
+    text-align: center;
+    opacity: .8;
+}
+
+.question-box {
+    margin-bottom: 14px;
+    padding: 22px 18px;
+    border-radius: 8px;
+    background: #fff;
+    color: #222;
+    text-align: center;
+    box-shadow: 0 4px 0 rgba(0,0,0,.25);
+}
+.question-box h2 {
+    margin: 0;
+    font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+.question-box img {
+    display: block;
+    max-width: 100%;
+    max-height: 220px;
+    margin: 14px auto 0;
+    border-radius: 6px;
+}
+
+/* ---------- the choices (2 x 2 grid) ----------
+   Colour comes from base.css; the shape and the tick/cross are drawn here,
+   so the script only has to create <button class="choice"><span>text</span></button>. */
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.choice {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 96px;
+    padding: 14px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--color);
+    box-shadow: 0 5px 0 var(--edge);
+    color: #fff;
+    font: inherit;
+    font-size: clamp(1rem, 2.6vw, 1.35rem);
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: transform .08s, opacity .2s;
+}
+.choice:hover:not(:disabled)  { transform: translateY(-2px); }
+.choice:active:not(:disabled) { transform: translateY(2px); }
+.choice:disabled { cursor: default; }
+.choice > span:first-child { flex: 1; overflow-wrap: anywhere; }
+.choice .badge { background: rgba(0,0,0,.3); font-size: .95rem; }
+
+.choice::before, .choice::after { flex: none; font-size: 1.8rem; line-height: 1; }
+.choice::before { content: var(--shape); }
+.choice:nth-child(4n+1) { --shape: "\25B2"; }   /* triangle */
+.choice:nth-child(4n+2) { --shape: "\25C6"; }   /* diamond  */
+.choice:nth-child(4n+3) { --shape: "\25CF"; }   /* circle   */
+.choice:nth-child(4n)   { --shape: "\25A0"; }   /* square   */
+.choice.correct::after { content: "\2713"; }    /* tick  */
+.choice.wrong::after   { content: "\2717"; }    /* cross */
+
+/* multiplayer: my answer is locked in, waiting for the others */
+.choices.locked .choice { opacity: .45; }
+.choices.locked .picked { opacity: 1; outline: 4px solid #fff; }
+/* the answer has been revealed: fade everything except the right answer */
+.choices.revealed .choice  { opacity: .35; }
+.choices.revealed .correct { opacity: 1;  outline: 4px solid #fff; }
+.choices.revealed .wrong   { opacity: .8; outline: 4px dashed #fff; }
+
+.choices + footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+/* ---------- final screen ---------- */
+.results { padding: 20px 0 6px; text-align: center; }
+.results p { margin: 6px 0 18px; }
+.results strong { display: block; margin: 6px 0; font-size: 1.6rem; font-weight: 800; }
+
+@media (max-width: 560px) {
+    .choices { grid-template-columns: 1fr; }
+    .choice  { min-height: 72px; }
+}
