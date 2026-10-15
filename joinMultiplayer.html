@@ -131,10 +131,27 @@
       <span class="title">Join Game</span>
       <span class="sub">Join an existing lobby</span>
     </a>
+    <textarea id="lobbyCode" placeholder="Enter lobby code" style="margin-top: 12px; width: 100%; max-width: 320px; height: 40px; font-size: 1.2rem; text-align: center;"></textarea>
   </div>
 </main>
 
 <script>
+  document.getElementById("lobbyCode").addEventListener("input", function() {
+    const code = this.value.trim();
+    const joinBtn = document.querySelector(".big.multi");
+    if (code.length > 0) {
+      joinBtn.href = "lobby.html?url=" + encodeURIComponent(code);
+    } else {
+      joinBtn.href = "lobby.html";
+    }
+  });
+
+  document.getElementById("adminBtn").addEventListener("click", function() {
+    let code = randomString(6);
+    this.href = "lobby.html?url=" + encodeURIComponent(code);
+    sessionStorage.setItem("adminFor", code);
+  });
+
   function randomString(length) {
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let result = "";
