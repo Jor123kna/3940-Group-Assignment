@@ -176,6 +176,10 @@
       $("password").value = "";
       $("password").focus();
     };
+
+    // Set session.displayName to the name entered, so that the user can be greeted by name on the home page.
+    sessionStorage.setItem("displayName", name);
+
     xhttp.open("POST", "login", true);
     xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");

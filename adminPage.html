@@ -628,43 +628,6 @@
             });
   };
 
-  $("createAccButton").onclick = function() {
-    const username = $("uName").value.trim();
-    const password = $("password").value;
-    
-    if (username === "") {
-      say("Enter A Username", true);
-      $("uName").focus;
-      return;
-    }
-
-    if (password === "") {
-      say("Enter A Password", true);
-      $("password").focus;
-      return;
-    }
-
-    const button = $("createAccButton");
-    button.disabled = true;
-
-    request("POST", "admin/account-add",
-      form([
-        ["username", username],
-        ["password", password]
-      ]),
-      function(result) {
-        button.disabled = false;
-        $("uName").value = "";
-        $("password").value = "";
-      },
-      function(message) {
-        button.disabled = false;
-        say(message, true);
-      }
-    )
-    return;
-  }
-
   start();
 </script>
 </body>
