@@ -95,6 +95,8 @@
   </style>
   <script>
 
+    let peopleInLobby = [];
+
     // Helper functions
     function asJSONObject(message) {
       return JSON.parse(message.data.replace(/&quot;/g, '"'));
@@ -120,8 +122,16 @@
         wsError(message);
     }
 
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById("username").textContent = sessionStorage.getItem('displayName');
+    });
+
     webSocket.addEventListener('open', () => {
       wsSendMessage(JSON.stringify({'type':'join','username': `${sessionStorage.getItem('displayName')}`}));
+    });
+
+    webSocket.addEventListener('close', () => {
+      wsSendMessage(JSON.stringify({'type':'leave','username': `${sessionStorage.getItem('displayName')}`}));
     });
 
     function wsOpen(message) {
@@ -132,10 +142,6 @@
     function wsSendMessage(message) {
         console.log("Sending message to the server: " + message);
         webSocket.send(message);
-    }
-
-    function wsCloseConnection() {
-        webSocket.close();
     }
 
     function wsGetMessage(message) {
@@ -150,18 +156,30 @@
 
           switch (data.type) {
             case "join":
-              if (true) // IF I AM THE HOST
+              document.getElementById("participant_list").textContent = "";
+              if (sessionStorage.getItem('adminFor') === lobbyCode) // IF I AM THE HOST
               {
+                // Add the new person to the list and then send out the entire list again
+                peopleInLobby.push(data.username);
                 // Needs to send the full list instead of just the new participant
-                wsSendMessage(JSON.stringify({'type':'add_participant','username': data.username}));
+                for (const person of peopleInLobby)
+                {
+                  wsSendMessage(JSON.stringify({'type':'add_participant','username': person}));
+                  var participantList = document.getElementById("participant_list");
+                  var newParticipant = document.createElement("li");
+                  newParticipant.className = "lobby";
+                  newParticipant.textContent = person;
+                  participantList.appendChild(newParticipant);
+                }
               }
               break;
 
-            case "add_participant": // Host sending the updated list of participants to all clients
+            case "add_participant":
+
               var participantList = document.getElementById("participant_list");
               var newParticipant = document.createElement("li");
               newParticipant.className = "lobby";
-              newParticipant.textContent = data.username; 
+              newParticipant.textContent = data.username;
               participantList.appendChild(newParticipant);
               break;
 
@@ -171,16 +189,16 @@
               break;
 
             case "leave":
-              // Remove the participant from the list
-              var participantList = document.getElementById("participant_list");
-              var participants = participantList.getElementsByTagName("li");
-              for (var i = 0; i < participants.length; i++) {
-                if (participants[i].textContent === data.username) {
-                  participantList.removeChild(participants[i]);
-                  break;
+              if (sessionStorage.getItem('adminFor') === lobbyCode) // IF I AM THE HOST
+              {
+                // Remove the participant from the list
+                peopleInLobby = peopleInLobby.filter(person => person !== data.username);
+                // Send out the updated list to all participants
+                for (const person of peopleInLobby)
+                {
+                  wsSendMessage(JSON.stringify({'type':'add_participant','username': person}));
                 }
               }
-              // Also remove from host's list if I am the host
               break;
 
 
@@ -188,14 +206,11 @@
                 console.log("Unknown message type: " + data.type);
                 break;
           }
-
         }
       }
       catch (e) {
         console.log("Received message from the server: " + message.data + e);
       }
-
-      
     }
 
     function wsClose(message) {
@@ -205,8 +220,6 @@
     function wsError(message) {
         console.log("Error occurred: " + message.data);
     }
-
-    
 
   </script>
 </head>
