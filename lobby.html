@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lobby</title>
+  <style>
+    :root {
+      --purple: #46178f;
+      --purple-dark: #33106b;
+      --light-purple: #722fd5;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px 14px 40px;
+      background: var(--purple);
+      color: #fff;
+      font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    .btn {
+      display: inline-block;
+      font: inherit;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,.3);
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+
+    .btn.admin { background: var(--red); color: #fff; box-shadow: 0 4px 0 var(--red-edge); }
+    .btn.light { background: #fff; color: var(--purple); }
+
+    .grid {
+      display: grid;
+      grid-template-areas:
+        "left right";
+      grid-template-columns: 2fr 2fr;
+      gap: 3px;
+      padding: 5px;
+    }
+      .grid div.right {
+        grid-area: right;
+      }
+      .grid div.left {
+        grid-area: left;
+      }
+
+    h1 {
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: 2rem;
+      letter-spacing: 1px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    #lobby_box {
+      width: 50%;
+      height: 60vh;
+      margin: 0 auto;
+      padding: 10px;
+      border-radius: 12px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background-color: var(--light-purple);
+      box-sizing: border-box;
+      border: 3px solid var(--purple-dark);
+    }
+
+    #participant_list {
+      list-style-position: inside;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* ------- Scroll Bar Decoration -------*/
+    /* Firefox */
+    #lobby_box {
+      scrollbar-width: thin;
+      scrollbar-color: var(--light-purple) var(--purple-dark);
+    }
+
+    /* Chrome, Edge, Safari */
+    #lobby_box::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    #lobby_box::-webkit-scrollbar-track {
+      background: var(--purple-dark);
+      border-radius: 10px;
+    }
+
+    #lobby_box::-webkit-scrollbar-thumb {
+      background: var(--light-purple);
+      border-radius: 10px;
+      border: 2px solid var(--purple-dark);
+    }
+
+    #lobby_box::-webkit-scrollbar-thumb:hover {
+      background: #9257e8;
+    }
+    /* ---------------------------- */
+
+    .lobby {
+      background: var(--purple-dark);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 6px;
+      font-size: 25px;
+    }
+
+    h4 {
+      text-align: center;
+    }
+
+    a {
+      width: 100%;
+      text-align: center;
+    }
+
+  </style>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const lobbyCode = urlParams.get('url');
+    const myName = sessionStorage.getItem('displayName');
+    const isHost = sessionStorage.getItem('adminFor') === lobbyCode;
+
+    // Send non-logged in users home and give them a message to log in first
+    if (!myName) {
+      alert("You must log in first!");
+      window.location.href = "login.html";
+    }
+
+    /*
+    ERROR: websocket is not functional as in the room code is null
+    */
+    let webSocket = new WebSocket(
+      `ws://localhost:8081/3940/websocket/chat/${lobbyCode}?username=${encodeURIComponent(myName)}${isHost ? '&host=1' : ''}`
+    );
+
+
+    let peopleInLobby = [];
+
+    // Helper functions
+    function asJSONObject(message) {
+      return JSON.parse(message.data.replace(/&quot;/g, '"'));
+    }
+
+    function renderParticipants(names) {
+      const list = document.getElementById("participant_list");
+      list.textContent = "";
+      for (const name of names) {
+        const li = document.createElement("li");
+        li.className = "lobby";
+        li.textContent = name;
+        list.appendChild(li);
+      }
+    }
+
+    function broadcastList() {
+      renderParticipants(peopleInLobby); // the server doesn't echo to the sender
+      wsSendMessage(JSON.stringify({ type: 'participants', list: peopleInLobby }));
+    }
+    
+
+    // Handlers for WebSocket events
+    webSocket.onopen = function(message) {
+        wsOpen(message);
+    }
+    webSocket.onmessage = function(message) {
+        wsGetMessage(message);
+    }
+    webSocket.onclose = function(message) {
+        wsClose(message);
+    }
+    webSocket.onerror = function(message) {
+        wsError(message);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      document.getElementById("username").textContent = sessionStorage.getItem('displayName');
+      if (isHost) {
+        loadCategories();
+        document.getElementById("admin_grid").classList.add("grid");
+        document.getElementById("waiting").hidden = true;
+        document.getElementById("name_display").innerHTML = "The room code is: <i>" + lobbyCode + "</i>";
+        document.getElementById("startBtn").hidden = false;
+        document.getElementById("categories").hidden = false;
+        document.getElementById("selected").hidden = false;
+        document.getElementById("time").hidden = false;
+        document.getElementById("startBtn").addEventListener("click", () => {
+          wsSendMessage(JSON.stringify({ type: 'start_game' }));
+          setTimeout(function(){
+              window.location.href = "triviaUser.html?websocket=" + encodeURIComponent(webSocket.url);
+          }, 1000);
+          
+        });
+        // document.getElementById("waiting").textContent = "You are the host. Waiting for participants to join...";
+      } else {
+        document.getElementById("startBtn").remove();
+      }
+    });
+
+    webSocket.addEventListener('open', () => {
+      wsSendMessage(JSON.stringify({'type':'join','username': `${sessionStorage.getItem('displayName')}`}));
+    });
+
+    function wsOpen(message) {
+        console.log("Connection established with the server: " + message.data);
+        console.log("Connected to the server as user: " + sessionStorage.getItem('displayName'));
+    }
+
+    function wsSendMessage(message) {
+        console.log("Sending message to the server: " + message);
+        webSocket.send(message);
+    }
+
+    function wsGetMessage(message) {
+
+      try {
+        if (message.data.startsWith("{")) {
+          var data = asJSONObject(message);
+          console.log("Received message from the server: ");
+          for (var property in data) {
+              console.log(property + ": " + data[property]);
+          }
+
+          switch (data.type) {
+            case "join":
+              if (isHost) {
+                if (!peopleInLobby.includes(data.username)) peopleInLobby.push(data.username);
+                broadcastList();
+              }
+              break;
+
+            case "participants":
+              renderParticipants(data.list);
+              break;
+
+            case "leave":
+              if (isHost) {
+                peopleInLobby = peopleInLobby.filter(p => p !== data.username);
+                broadcastList();
+              }
+              break;
+
+            case "start_game":
+              // Redirect to the game page
+              window.location.href = "triviaUser.html?websocket=" + encodeURIComponent(webSocket.url);
+              break;
+
+            default:
+                console.log("Unknown message type: " + data.type);
+                break;
+          }
+        }
+      }
+      catch (e) {
+        console.log("Received message from the server: " + message.data + e);
+      }
+    }
+
+    function wsClose(event) {
+      console.log("Connection closed by the server.");
+      if (event.reason === "host_left") {
+        alert("The host has left, so the lobby was closed.");
+        window.location.href = "index.html";
+      }
+    }
+
+    function wsError(message) {
+        console.log("Error occurred: " + message.data);
+    }
+
+  // AJAX helpers (XMLHttpRequest). URLs are relative, so this works at
+  // /GroupAssignment1/ on any host or port.
+  function request(method, url, body, onSuccess, onError) {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState != 4) return;
+
+      if (this.status == 200) {
+        try {
+          onSuccess(JSON.parse(this.responseText));
+        } catch (e) {
+          onError("The server sent a response that could not be read.");
+        }
+      } else {
+        onError("The server returned an error (status " + this.status + ").");
+      }
+    };
+    xhttp.open(method, url, true);
+    if (body !== null) {
+      xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    }
+    xhttp.send(body);
+  }
+
+  function getJson(url, onSuccess, onError) {
+    request("GET", url, null, onSuccess, onError);
+  }
+
+  function postForm(url, body, onSuccess, onError) {
+    request("POST", url, body, onSuccess, onError);
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  // Categories: one tab per category, along the top
+  function loadCategories() {
+    getJson("categories", showCategories, function(message) {
+      console.log("Could not load categories. " + message);
+    });
+  }
+
+  function showCategories(categories) {
+    const holder = $("categories");
+    holder.textContent = "";
+
+
+    categories.forEach(function(category) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "cat";
+      button.textContent = category.category_name;
+      button.onclick = function() { selectCategory(button, category); };
+      holder.appendChild(button);
+    });
+  }
+
+  function selectCategory(button, category) {
+    document.querySelectorAll("#categories .cat").forEach(function(b) {
+      b.classList.remove("selected");
+    });
+    button.classList.add("selected");
+
+    // starting a new category throws away the old game
+    document.getElementById("selected").textContent = "Selected: " + category.category_name;
+    sessionStorage.setItem("selectedCategory", category.category_name);
+  }
+
+  // Whenever timer changes
+  /*
+    Error here where timer hard resets to 30 seconds if not found
+  */
+  document.getElementById("time").addEventListener("input", function() {
+    const time = parseInt(this.value);
+    sessionStorage.setItem("timePerQuestion", time);
+  });
+
+  </script>
+</head>
+
+<body>
+  <div>
+    <h2 id="name_display">Your name is displayed as: <i id="username"></i></h2>
+    <h2>List of participants</h2>
+  </div>
+
+  <div id="admin_grid">
+    <div class="left">
+      <div id="lobby_box">
+        <ol id="participant_list">
+          <!-- participants can get added to the ordered list with this format: <li class="lobby">John Doe</li> -->
+        </ol>
+      </div>
+      <h4 id="waiting"><i>Waiting for host to start...</i></h4>
+      <br>
+    </div>
+    <div class="right">
+      <a id="startBtn" class="btn light" hidden>Start Game</a>
+      <br>
+      <nav id="categories" class="categories" aria-label="Categories" hidden></nav>
+      <p id="selected" hidden>Selected: </p>
+      <input type="number" id="time" min="5" value="30" placeholder="Time per question (seconds)" style="width: 100%; max-width: 320px; height: 40px; font-size: 1.2rem; text-align: center; margin-top: 12px;" hidden>
+    </div>
+  </div>
+</body>
+
+</html>
