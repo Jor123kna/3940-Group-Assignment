@@ -154,11 +154,40 @@
       }
 
       /*
-    ERROR: websocket is not functional as in the room code is null
+        ERROR: websocket is not functional as in the room code is null
     */
-      let webSocket = new WebSocket(
-        `ws://localhost:8081/3940/websocket/chat/${lobbyCode}?username=${encodeURIComponent(myName)}${isHost ? "&host=1" : ""}`,
+
+      if (!myName) {
+        alert("You must log in first!");
+        window.location.replace("login.html");
+        throw new Error("WebSocket initialization stopped: no username.");
+      }
+
+      if (!lobbyCode) {
+        console.error("Missing lobby code in the page URL.");
+        window.location.replace("index.html");
+        throw new Error("WebSocket initialization stopped: no lobby code.");
+      }
+
+      // Resolve the endpoint relative to the directory containing this page.
+      const appBase = new URL(".", window.location.href);
+
+      const wsUrl = new URL(
+        "websocket/chat/" + encodeURIComponent(lobbyCode),
+        appBase,
       );
+
+      wsUrl.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+
+      wsUrl.searchParams.set("username", myName);
+
+      if (isHost) {
+        wsUrl.searchParams.set("host", "1");
+      }
+
+      console.log("Connecting to:", wsUrl.toString());
+
+      let webSocket = new WebSocket(wsUrl.toString());
 
       let peopleInLobby = [];
 
@@ -226,14 +255,11 @@
         }
       });
 
-      webSocket.addEventListener("open", () => {
-        wsSendMessage(
-          JSON.stringify({
-            type: "join",
-            username: `${sessionStorage.getItem("displayName")}`,
-          }),
-        );
-      });
+      const time = sessionStorage.getItem("timePerQuestion");
+
+      function getQuestionDuration() {
+        return Number(time) || 30;
+      }
 
       function wsOpen(message) {
         console.log("Connection established with the server: " + message.data);
@@ -388,9 +414,21 @@
       /*
     Error here where timer hard resets to 30 seconds if not found
   */
-      document.getElementById("time").addEventListener("input", function () {
-        const time = parseInt(this.value);
-        sessionStorage.setItem("timePerQuestion", time);
+      document.addEventListener("DOMContentLoaded", () => {
+        const timeInput = document.getElementById("time");
+
+        // Save the default value, even if the host never changes it.
+        sessionStorage.setItem("timePerQuestion", timeInput.value || "30");
+
+        timeInput.addEventListener("input", function () {
+          const seconds = Number(this.value);
+
+          if (Number.isFinite(seconds) && seconds >= 5) {
+            sessionStorage.setItem("timePerQuestion", String(seconds));
+          }
+        });
+
+        // Keep the rest of your existing DOMContentLoaded code here.
       });
     </script>
   </head>

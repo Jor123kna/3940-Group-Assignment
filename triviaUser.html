@@ -8,22 +8,40 @@
 
     <script>
       const urlParams = new URLSearchParams(window.location.search);
-
-      // The lobby already passes its WebSocket URL to this page.
       const lobbySocketUrl = urlParams.get("websocket");
 
-      // Extract the lobby code from the WebSocket URL.
-      const socketUrl = new URL(lobbySocketUrl);
-      const pathParts = socketUrl.pathname.split("/");
-      const lobbyCode = pathParts[pathParts.length - 1];
+      if (!lobbySocketUrl) {
+        throw new Error("Missing WebSocket URL from the lobby.");
+      }
 
-      const myName = sessionStorage.getItem("displayName");
-      const isHost = sessionStorage.getItem("adminFor") === lobbyCode;
+      const socketUrl = new URL(lobbySocketUrl);
+
+      if (!["ws:", "wss:"].includes(socketUrl.protocol)) {
+        throw new Error("Invalid WebSocket protocol: " + socketUrl.protocol);
+      }
+
+      const pathParts = socketUrl.pathname.split("/").filter(Boolean);
+      const lobbyCode = decodeURIComponent(
+        pathParts[pathParts.length - 1] || "",
+      );
+
+      if (!lobbyCode) {
+        throw new Error(
+          "Could not extract the room ID from the WebSocket URL.",
+        );
+      }
+
       const time = sessionStorage.getItem("timePerQuestion");
       const catagory = sessionStorage.getItem("selectedCategory");
+      const myName = sessionStorage.getItem("displayName");
+      const isHost = sessionStorage.getItem("adminFor") === lobbyCode;
 
-      // Reconnect using the exact WebSocket URL provided by the lobby.
-      let webSocket = new WebSocket(lobbySocketUrl);
+      if (!myName) {
+        window.location.replace("login.html");
+        throw new Error("Game initialization stopped: no username.");
+      }
+
+      const webSocket = new WebSocket(socketUrl.toString());
 
       // The host stores the questions returned by the server.
       let gameQuestions = [];
@@ -60,16 +78,14 @@
 
       function wsOpen() {
         console.log("Connected as user: " + myName);
-        document.getElementById("playerName").textContent = myName || "Guest";
+
+        document.getElementById("playerName").textContent = myName;
 
         send({ type: "join", username: myName });
 
         if (isHost) {
           players[myName] = 0;
-
-          // Ask players who are already connected to identify themselves.
           send({ type: "request_players" });
-
           startHostGame();
         } else {
           startPlayerGame();
@@ -275,8 +291,8 @@
       function hostReceiveAnswer(data) {
         if (!questionOpen) return;
         if (data.questionIndex !== currentQuestionIndex) return;
-        if (!(data.username in players)) players[data.username] = 0;
-        if (answers[data.username]) return; // first answer wins
+        if (!(data.username in players)) return;
+        if (answers[data.username]) return;
 
         answers[data.username] = {
           answerId: data.answerId,
@@ -285,6 +301,7 @@
 
         const answered = Object.keys(answers).length;
         const total = Object.keys(players).length;
+
         setGameStatus("Answers received: " + answered + " / " + total);
 
         if (answered >= total) {
@@ -506,12 +523,10 @@
       function hostPlayerJoined(username) {
         if (!username) return;
 
-        // Only register a player once.
-        if (username in players) return;
+        if (!(username in players)) {
+          players[username] = 0;
+        }
 
-        players[username] = 0;
-
-        // Send the current question to a newly connected player.
         if (questionOpen) {
           broadcastQuestion(username);
         }
