@@ -20,10 +20,10 @@ import javax.crypto.spec.PBEKeySpec;
  */
 public final class Passwords {
 
-    private static final String PREFIX     = "pbkdf2$";
-    private static final int    ITERATIONS = 120000;
-    private static final int    SALT_BYTES = 16;
-    private static final int    HASH_BITS  = 256;
+    private static final String PREFIX = "pbkdf2$";
+    private static final int ITERATIONS = 120000;
+    private static final int SALT_BYTES = 16;
+    private static final int HASH_BITS  = 256;
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
