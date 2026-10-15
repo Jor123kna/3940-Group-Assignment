@@ -171,7 +171,6 @@
       renderParticipants(peopleInLobby); // the server doesn't echo to the sender
       wsSendMessage(JSON.stringify({ type: 'participants', list: peopleInLobby }));
     }
-
     
 
     // Handlers for WebSocket events
@@ -284,7 +283,7 @@
         console.log("Error occurred: " + message.data);
     }
 
-    // AJAX helpers (XMLHttpRequest). URLs are relative, so this works at
+  // AJAX helpers (XMLHttpRequest). URLs are relative, so this works at
   // /GroupAssignment1/ on any host or port.
   function request(method, url, body, onSuccess, onError) {
     const xhttp = new XMLHttpRequest();
