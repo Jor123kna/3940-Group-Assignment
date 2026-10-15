@@ -22,6 +22,39 @@
       overflow: hidden;
     }
 
+    .btn {
+      display: inline-block;
+      font: inherit;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,.3);
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+
+    .btn.admin { background: var(--red); color: #fff; box-shadow: 0 4px 0 var(--red-edge); }
+    .btn.light { background: #fff; color: var(--purple); }
+
+    .grid {
+      display: grid;
+      grid-template-areas:
+        "left right";
+      grid-template-columns: 2fr 2fr;
+      gap: 3px;
+      padding: 5px;
+    }
+      .grid div.right {
+        grid-area: right;
+      }
+      .grid div.left {
+        grid-area: left;
+      }
+
     h1 {
       margin: 0 0 14px;
       text-align: center;
@@ -92,8 +125,29 @@
     h4 {
       text-align: center;
     }
+
+    a {
+      width: 100%;
+      text-align: center;
+    }
+
   </style>
   <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const lobbyCode = urlParams.get('url');
+    const myName = sessionStorage.getItem('displayName');
+    const isHost = sessionStorage.getItem('adminFor') === lobbyCode;
+
+    // Send non-logged in users home and give them a message to log in first
+    if (!myName) {
+      alert("You must log in first!");
+      window.location.href = "login.html";
+    }
+
+    let webSocket = new WebSocket(
+      `ws://localhost:8081/3940/websocket/chat/${lobbyCode}?username=${encodeURIComponent(myName)}${isHost ? '&host=1' : ''}`
+    );
+
 
     let peopleInLobby = [];
 
@@ -102,11 +156,23 @@
       return JSON.parse(message.data.replace(/&quot;/g, '"'));
     }
 
-    // Open a connection to the server 
-    // TODO: DYNAMICALLY ASSIGN THIS URL BASED ON THE ?URL= COMPONENT IN THE URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const lobbyCode = urlParams.get('url');
-    let webSocket = new WebSocket(`ws://localhost:8081/3940/websocket/chat/${lobbyCode}`);
+    function renderParticipants(names) {
+      const list = document.getElementById("participant_list");
+      list.textContent = "";
+      for (const name of names) {
+        const li = document.createElement("li");
+        li.className = "lobby";
+        li.textContent = name;
+        list.appendChild(li);
+      }
+    }
+
+    function broadcastList() {
+      renderParticipants(peopleInLobby); // the server doesn't echo to the sender
+      wsSendMessage(JSON.stringify({ type: 'participants', list: peopleInLobby }));
+    }
+
+    
 
     // Handlers for WebSocket events
     webSocket.onopen = function(message) {
@@ -123,15 +189,32 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      
       document.getElementById("username").textContent = sessionStorage.getItem('displayName');
+      if (isHost) {
+        loadCategories();
+        document.getElementById("admin_grid").classList.add("grid");
+        document.getElementById("waiting").hidden = true;
+        document.getElementById("name_display").innerHTML = "The room code is: <i>" + lobbyCode + "</i>";
+        document.getElementById("startBtn").hidden = false;
+        document.getElementById("categories").hidden = false;
+        document.getElementById("selected").hidden = false;
+        document.getElementById("time").hidden = false;
+        document.getElementById("startBtn").addEventListener("click", () => {
+          wsSendMessage(JSON.stringify({ type: 'start_game' }));
+          setTimeout(function(){
+              window.location.href = "triviaUser.html?websocket=" + encodeURIComponent(webSocket.url);
+          }, 1000);
+          
+        });
+        // document.getElementById("waiting").textContent = "You are the host. Waiting for participants to join...";
+      } else {
+        document.getElementById("startBtn").remove();
+      }
     });
 
     webSocket.addEventListener('open', () => {
       wsSendMessage(JSON.stringify({'type':'join','username': `${sessionStorage.getItem('displayName')}`}));
-    });
-
-    webSocket.addEventListener('close', () => {
-      wsSendMessage(JSON.stringify({'type':'leave','username': `${sessionStorage.getItem('displayName')}`}));
     });
 
     function wsOpen(message) {
@@ -156,51 +239,27 @@
 
           switch (data.type) {
             case "join":
-              document.getElementById("participant_list").textContent = "";
-              if (sessionStorage.getItem('adminFor') === lobbyCode) // IF I AM THE HOST
-              {
-                // Add the new person to the list and then send out the entire list again
-                peopleInLobby.push(data.username);
-                // Needs to send the full list instead of just the new participant
-                for (const person of peopleInLobby)
-                {
-                  wsSendMessage(JSON.stringify({'type':'add_participant','username': person}));
-                  var participantList = document.getElementById("participant_list");
-                  var newParticipant = document.createElement("li");
-                  newParticipant.className = "lobby";
-                  newParticipant.textContent = person;
-                  participantList.appendChild(newParticipant);
-                }
+              if (isHost) {
+                if (!peopleInLobby.includes(data.username)) peopleInLobby.push(data.username);
+                broadcastList();
               }
               break;
 
-            case "add_participant":
+            case "participants":
+              renderParticipants(data.list);
+              break;
 
-              var participantList = document.getElementById("participant_list");
-              var newParticipant = document.createElement("li");
-              newParticipant.className = "lobby";
-              newParticipant.textContent = data.username;
-              participantList.appendChild(newParticipant);
+            case "leave":
+              if (isHost) {
+                peopleInLobby = peopleInLobby.filter(p => p !== data.username);
+                broadcastList();
+              }
               break;
 
             case "start_game":
               // Redirect to the game page
-              window.location.href = "triviauser.html?websocket=" + encodeURIComponent(webSocket.url);
+              window.location.href = "triviaUser.html?websocket=" + encodeURIComponent(webSocket.url);
               break;
-
-            case "leave":
-              if (sessionStorage.getItem('adminFor') === lobbyCode) // IF I AM THE HOST
-              {
-                // Remove the participant from the list
-                peopleInLobby = peopleInLobby.filter(person => person !== data.username);
-                // Send out the updated list to all participants
-                for (const person of peopleInLobby)
-                {
-                  wsSendMessage(JSON.stringify({'type':'add_participant','username': person}));
-                }
-              }
-              break;
-
 
             default:
                 console.log("Unknown message type: " + data.type);
@@ -213,32 +272,118 @@
       }
     }
 
-    function wsClose(message) {
-        console.log("Connection closed by the server.");
+    function wsClose(event) {
+      console.log("Connection closed by the server.");
+      if (event.reason === "host_left") {
+        alert("The host has left, so the lobby was closed.");
+        window.location.href = "index.html";
+      }
     }
 
     function wsError(message) {
         console.log("Error occurred: " + message.data);
     }
 
+    // AJAX helpers (XMLHttpRequest). URLs are relative, so this works at
+  // /GroupAssignment1/ on any host or port.
+  function request(method, url, body, onSuccess, onError) {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState != 4) return;
+
+      if (this.status == 200) {
+        try {
+          onSuccess(JSON.parse(this.responseText));
+        } catch (e) {
+          onError("The server sent a response that could not be read.");
+        }
+      } else {
+        onError("The server returned an error (status " + this.status + ").");
+      }
+    };
+    xhttp.open(method, url, true);
+    if (body !== null) {
+      xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    }
+    xhttp.send(body);
+  }
+
+  function getJson(url, onSuccess, onError) {
+    request("GET", url, null, onSuccess, onError);
+  }
+
+  function postForm(url, body, onSuccess, onError) {
+    request("POST", url, body, onSuccess, onError);
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  // Categories: one tab per category, along the top
+  function loadCategories() {
+    getJson("categories", showCategories, function(message) {
+      console.log("Could not load categories. " + message);
+    });
+  }
+
+  function showCategories(categories) {
+    const holder = $("categories");
+    holder.textContent = "";
+
+
+    categories.forEach(function(category) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "cat";
+      button.textContent = category.category_name;
+      button.onclick = function() { selectCategory(button, category); };
+      holder.appendChild(button);
+    });
+  }
+
+  function selectCategory(button, category) {
+    document.querySelectorAll("#categories .cat").forEach(function(b) {
+      b.classList.remove("selected");
+    });
+    button.classList.add("selected");
+
+    // starting a new category throws away the old game
+    document.getElementById("selected").textContent = "Selected: " + category.category_name;
+    sessionStorage.setItem("selectedCategory", category.category_name);
+  }
+
+  // Whenever timer changes
+  document.getElementById("time").addEventListener("input", function() {
+    const time = parseInt(this.value);
+    sessionStorage.setItem("timePerQuestion", time);
+  });
+
   </script>
 </head>
 
 <body>
   <div>
-    <h1>Welcome to the lobby!</h1>
-    <br>
-    <!-- The typed username can be displayed here -->
-    <h2>Your name is displayed as: <i id="username"></i></h2>
+    <h2 id="name_display">Your name is displayed as: <i id="username"></i></h2>
     <h2>List of participants</h2>
   </div>
 
-  <div id="lobby_box">
-    <ol id="participant_list">
-      <!-- participants can get added to the ordered list with this format: <li class="lobby">John Doe</li> -->
-    </ol>
+  <div id="admin_grid">
+    <div class="left">
+      <div id="lobby_box">
+        <ol id="participant_list">
+          <!-- participants can get added to the ordered list with this format: <li class="lobby">John Doe</li> -->
+        </ol>
+      </div>
+      <h4 id="waiting"><i>Waiting for host to start...</i></h4>
+      <br>
+    </div>
+    <div class="right">
+      <a id="startBtn" class="btn light" hidden>Start Game</a>
+      <br>
+      <nav id="categories" class="categories" aria-label="Categories" hidden></nav>
+      <p id="selected" hidden>Selected: </p>
+      <input type="number" id="time" min="5" value="30" placeholder="Time per question (seconds)" style="width: 100%; max-width: 320px; height: 40px; font-size: 1.2rem; text-align: center; margin-top: 12px;" hidden>
+    </div>
   </div>
-  <h4><i>Waiting for host to start...</i></h4>
 </body>
 
 </html>
