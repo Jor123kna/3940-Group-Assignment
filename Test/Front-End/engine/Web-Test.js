@@ -255,3 +255,5 @@ class WebTest {
     return result;
   }
 }
+
+export { WebTester };
