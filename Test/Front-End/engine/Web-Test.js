@@ -256,4 +256,4 @@ class WebTest {
   }
 }
 
-export { WebTester };
+export { WebTest };
