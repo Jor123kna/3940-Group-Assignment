@@ -3,7 +3,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
@@ -20,97 +19,97 @@ import javax.crypto.spec.PBEKeySpec;
  */
 public final class Passwords {
 
-    private static final String PREFIX     = "pbkdf2$";
-    private static final int    ITERATIONS = 120000;
-    private static final int    SALT_BYTES = 16;
-    private static final int    HASH_BITS  = 256;
+  private static final String PREFIX = "pbkdf2$";
+  private static final int ITERATIONS = 120000;
+  private static final int SALT_BYTES = 16;
+  private static final int HASH_BITS = 256;
 
-    private static final SecureRandom RANDOM = new SecureRandom();
+  private static final SecureRandom RANDOM = new SecureRandom();
 
-    private Passwords() { }
+  private Passwords() {}
 
-    public static String hash(String password) {
+  public static String hash(String password) {
+    byte[] salt = new byte[SALT_BYTES];
+    RANDOM.nextBytes(salt);
 
-        byte[] salt = new byte[SALT_BYTES];
-        RANDOM.nextBytes(salt);
+    byte[] hash = pbkdf2(password, salt, ITERATIONS);
 
-        byte[] hash = pbkdf2(password, salt, ITERATIONS);
+    return (
+      PREFIX +
+      ITERATIONS +
+      "$" +
+      Base64.getEncoder().encodeToString(salt) +
+      "$" +
+      Base64.getEncoder().encodeToString(hash)
+    );
+  }
 
-        return PREFIX + ITERATIONS + "$" +
-               Base64.getEncoder().encodeToString(salt) + "$" +
-               Base64.getEncoder().encodeToString(hash);
+  /** True when the stored value is a hash (not old plain text). */
+  public static boolean isHashed(String stored) {
+    return stored != null && stored.startsWith(PREFIX);
+  }
+
+  /**
+   * Checks a typed password against what is stored. The comparison
+   * takes the same time however many characters match.
+   */
+  public static boolean matches(String stored, String typed) {
+    if (stored == null || typed == null) {
+      // spend about the same time as a real check
+      pbkdf2("x", new byte[SALT_BYTES], ITERATIONS);
+      return false;
     }
 
-    /** True when the stored value is a hash (not old plain text). */
-    public static boolean isHashed(String stored) {
-        return stored != null && stored.startsWith(PREFIX);
+    if (!isHashed(stored)) {
+      // legacy plain-text row
+      return MessageDigest.isEqual(
+        stored.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+        typed.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+      );
     }
 
-    /**
-     * Checks a typed password against what is stored. The comparison
-     * takes the same time however many characters match.
-     */
-    public static boolean matches(String stored, String typed) {
+    try {
+      String[] parts = stored.split("\\$");
 
-        if (stored == null || typed == null) {
-            // spend about the same time as a real check
-            pbkdf2("x", new byte[SALT_BYTES], ITERATIONS);
-            return false;
-        }
+      if (parts.length != 4) {
+        return false;
+      }
 
-        if (!isHashed(stored)) {
-            // legacy plain-text row
-            return MessageDigest.isEqual(
-                stored.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                typed.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-            );
-        }
+      int iterations = Integer.parseInt(parts[1]);
+      byte[] salt = Base64.getDecoder().decode(parts[2]);
+      byte[] want = Base64.getDecoder().decode(parts[3]);
 
-        try {
-            String[] parts = stored.split("\\$");
+      byte[] got = pbkdf2(typed, salt, iterations);
 
-            if (parts.length != 4) {
-                return false;
-            }
+      return MessageDigest.isEqual(want, got);
+    } catch (IllegalArgumentException e) {
+      return false; // malformed number or base64
+    }
+  }
 
-            int iterations = Integer.parseInt(parts[1]);
-            byte[] salt    = Base64.getDecoder().decode(parts[2]);
-            byte[] want    = Base64.getDecoder().decode(parts[3]);
+  private static byte[] pbkdf2(String password, byte[] salt, int iterations) {
+    try {
+      PBEKeySpec spec = new PBEKeySpec(
+        password.toCharArray(),
+        salt,
+        iterations,
+        HASH_BITS
+      );
 
-            byte[] got = pbkdf2(typed, salt, iterations);
+      return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+        .generateSecret(spec)
+        .getEncoded();
+    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+      throw new IllegalStateException(e);
+    }
+  }
 
-            return MessageDigest.isEqual(want, got);
-
-        } catch (IllegalArgumentException e) {
-            return false;   // malformed number or base64
-        }
+  public static void main(String[] args) {
+    if (args.length != 1) {
+      System.err.println("usage: java Passwords <password>");
+      return;
     }
 
-    private static byte[] pbkdf2(
-            String password, byte[] salt, int iterations) {
-
-        try {
-            PBEKeySpec spec = new PBEKeySpec(
-                password.toCharArray(), salt, iterations, HASH_BITS
-            );
-
-            return SecretKeyFactory
-                .getInstance("PBKDF2WithHmacSHA256")
-                .generateSecret(spec)
-                .getEncoded();
-
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public static void main(String[] args) {
-
-        if (args.length != 1) {
-            System.err.println("usage: java Passwords <password>");
-            return;
-        }
-
-        System.out.println(hash(args[0]));
-    }
+    System.out.println(hash(args[0]));
+  }
 }
