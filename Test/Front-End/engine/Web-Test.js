@@ -167,9 +167,9 @@ class WebTest {
         const compiledScript = WebTest._compileScript(scriptCode);
 
         script.textContent = `
-          (() => {
+          (async () => {
             try {
-              const result = (${compiledScript})();
+              const result = await (${compiledScript})();
               window.opener.postMessage({ type: "webtest-result", pass: result === true }, "*");
             } catch (err) {
               window.opener.postMessage({ type: "webtest-result", pass: false, error: String(err) }, "*");
