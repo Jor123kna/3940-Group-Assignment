@@ -21,7 +21,14 @@ class WebTest {
    * @private
    */
   static _waitForLoad(testWindow) {
-    if (testWindow.document.readyState === "complete") return Promise.resolve();
+    if (testWindow.document.readyState === "complete") {
+      return new Promise((resolve, reject) => {
+        // Small wait time for inital page loads.
+        setTimeout(() => {
+          resolve();
+        }, 100);
+      });
+    }
 
     return new Promise((resolve, reject) => {
       const onLoad = () => {
