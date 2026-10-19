@@ -4,8 +4,7 @@
  * This includes testing for UI components, API endpoints, and navigation.
  *
  * @information
- * To run the tests, first, paste this class code into the developer console of an open web page of the application.
- * Then paste the contents of the other test files (e.g., ../tests/button-test.js) into the console.
+ * To run the tests, paste the contents of the test files (e.g., ../tests/button-test.js) into the console.
  * The tests will execute automatically and log results to the console.
  */
 class WebTest {
