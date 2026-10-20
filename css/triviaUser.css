@@ -8,7 +8,6 @@
 body {
   margin: 0;
   padding: 24px 16px;
-  background: #46178f;
   color: #fff;
   font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
   font-size: 20px;
@@ -31,9 +30,19 @@ header p {
   margin: 4px 0;
 }
 
+/*
 .game-panel {
   padding: 24px;
   background: #33106b;
+  border-radius: 12px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+}
+*/
+.game-panel {
+  padding: 24px;
+  background: rgba(30, 12, 50, .75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.12);
   border-radius: 12px;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
 }
@@ -57,7 +66,8 @@ header p {
   text-align: center;
   margin: 0 0 12px;
   font-weight: bold;
-  color: #d8c8ed;
+  /*color: #d8c8ed;*/
+  color: #ffe3c2;
 }
 
 .question {
@@ -130,6 +140,7 @@ button:focus-visible {
   font-size: 2rem;
   line-height: 1;
 }
+/*
 .answer-a {
   background: #e21b3c;
   box-shadow: 0 5px 0 #a8132c;
@@ -147,6 +158,24 @@ button:focus-visible {
   background: #26890c;
   box-shadow: 0 5px 0 #1a600a;
 }
+*/
+.answer-a { 
+  background: #ee5056;  
+  box-shadow: 0 5px 0 var(--red-edge); 
+}
+.answer-b { 
+  background: #8e3b9e;
+  box-shadow: 0 5px 0 var(--blue-edge); 
+}
+.answer-c { 
+  background: #f5a33a; 
+  box-shadow: 0 5px 0 var(--gold-edge); 
+  color: #2b1055; 
+}
+.answer-d { 
+  background: #1f9e7a; 
+  box-shadow: 0 5px 0 var(--green-edge); 
+}
 
 .submit {
   display: block;
@@ -155,7 +184,8 @@ button:focus-visible {
   border: 0;
   border-radius: 8px;
   background: #fff;
-  color: #33106b;
+  /*color: #33106b;*/
+  color: #2b1055;
   font: inherit;
   font-weight: bold;
   cursor: pointer;
@@ -241,7 +271,7 @@ button:focus-visible {
 .board li::before { content: counter(place); flex: none; min-width: 1.4em; font-weight: 800; opacity: .7; }
 .board li > span { flex: 1; font-weight: 700; overflow-wrap: anywhere; }
 .board li > strong { flex: none; }
-.board li.leader { background: var(--gold); }
+.board li.leader { background: #f5a33a;; }
 .board li.me { outline: 3px solid #fff; }
 #revealBtn { margin-top: 10px; }
 
