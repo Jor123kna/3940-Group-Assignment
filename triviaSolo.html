@@ -6,12 +6,14 @@
   <title>Trivia</title>
   <style>
     :root {
-      --purple:      #46178f;
-      --purple-dark: #33106b;
-      --red:    #e21b3c;  --red-edge:    #a8132c;
-      --blue:   #1368ce;  --blue-edge:   #0d4a96;
-      --gold:   #d89e00;  --gold-edge:   #a07400;
-      --green:  #26890c;  --green-edge:  #1a600a;
+
+    --purple:      #2b1055;               
+    --purple-dark: rgba(30, 12, 50, .75);   
+    --red:    #e94f64;  --red-edge:   #a8334a;   
+    --blue:   #f08a3c;  --blue-edge:  #b3601c; 
+    --gold:   #f7c548;  --gold-edge:  #b98f1c;  
+    --green:  #8e44ad;  --green-edge: #62307a;  
+    
     }
 
     * { box-sizing: border-box; }
@@ -21,7 +23,21 @@
       margin: 0;
       min-height: 100vh;
       padding: 20px 14px 40px;
-      background: var(--purple);
+      background: linear-gradient(
+        to bottom,
+        #1a1630 0%,
+        #2a2248 30%,
+        #3b3366 48%,
+        #4f5483 58%,
+        #8a7a9e 66%,
+        #e0a05c 74%,
+        #ee9a45 80%,
+        #e0672e 86%,
+        #3a1a2a 90%,
+        #141026 93%,    
+        #2a1f50 100%    
+    ) fixed;
+    color: #fff;
       color: #fff;
       font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
     }

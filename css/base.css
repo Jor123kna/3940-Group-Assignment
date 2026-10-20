@@ -1,7 +1,7 @@
 /* Shared by every page: design tokens, reset and reusable components. */
-
+/*
 :root {
-    --purple:      #46178f;
+   --purple:      #46178f;
     --purple-dark: #33106b;
     --red:    #e21b3c;  --red-edge:   #a8132c;
     --blue:   #1368ce;  --blue-edge:  #0d4a96;
@@ -9,19 +9,52 @@
     --green:  #26890c;  --green-edge: #1a600a;
     --yellow: #ffd23f;
 }
-
+*/
+:root {
+    --purple:      #2b1055;               
+    --purple-dark: rgba(30, 12, 50, .75);   
+    --red:    #e94f64;  --red-edge:   #a8334a;   
+    --blue:   #f08a3c;  --blue-edge:  #b3601c; 
+    --gold:   #f7c548;  --gold-edge:  #b98f1c;  
+    --green:  #8e44ad;  --green-edge: #62307a;  
+    --yellow: #ffd23f;
+}
 /* ---------- reset ---------- */
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
 a { color: inherit; }
 :focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
-
+/*
 body {
     margin: 0;
     min-height: 100vh;
     padding: 16px 16px 50px;
     background: var(--purple);
+    color: #fff;
+    font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+*/
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 16px 16px 50px;
+    background: #1a1530;   /* fallback */
+    background: linear-gradient(
+        to bottom,
+        #1a1630 0%,
+        #2a2248 30%,
+        #3b3366 48%,
+        #4f5483 58%,
+        #8a7a9e 66%,
+        #e0a05c 74%,
+        #ee9a45 80%,
+        #e0672e 86%,
+        #3a1a2a 90%,
+        #141026 93%,    
+        #2a1f50 100%    
+    ) fixed;
     color: #fff;
     font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
 }
@@ -31,7 +64,12 @@ h1 {
     text-align: center;
     font-size: 2rem;
     letter-spacing: 1px;
+    text-shadow: 0 2px 12px rgba(0,0,0,.35);
 }
+
+/*   
+h1 { text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+*/
 
 /* ---------- page layout ---------- */
 .app { max-width: 1100px; margin: 0 auto; }
@@ -63,6 +101,9 @@ h1 {
     border-radius: 12px;
     background: var(--purple-dark);
     box-shadow: 0 6px 0 rgba(0,0,0,.25);
+    /*my lines*/
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.12);
 }
 .panel h2 { margin: 0 0 12px; font-size: 1.2rem; }
 .panel h3 { margin: 18px 0 10px; font-size: 1rem; }
