@@ -1,0 +1,292 @@
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  padding: 24px 16px;
+  color: #fff;
+  font-family: Montserrat, "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+header p {
+  margin: 4px 0;
+}
+
+/*
+.game-panel {
+  padding: 24px;
+  background: #33106b;
+  border-radius: 12px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+}
+*/
+.game-panel {
+  padding: 24px;
+  background: rgba(30, 12, 50, .75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+}
+
+.game-info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.game-info p {
+  margin: 0;
+}
+.timer {
+  font-size: 1.5rem;
+}
+.progress {
+  text-align: center;
+  margin: 0 0 12px;
+  font-weight: bold;
+  /*color: #d8c8ed;*/
+  color: #ffe3c2;
+}
+
+.question {
+  padding: 24px;
+  background: #fff;
+  color: #222;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.question h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.media-placeholder {
+  max-width: 320px;
+  min-height: 120px;
+  margin: 20px auto 0;
+  padding: 24px;
+  border: 2px dashed #666;
+  border-radius: 8px;
+  color: #555;
+}
+
+fieldset {
+  margin: 32px 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+legend {
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.answer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 120px;
+  padding: 24px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: #fff;
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.answer:hover {
+  border-color: #fff;
+}
+button:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 4px;
+}
+.shape {
+  flex: none;
+  font-size: 2rem;
+  line-height: 1;
+}
+/*
+.answer-a {
+  background: #e21b3c;
+  box-shadow: 0 5px 0 #a8132c;
+}
+.answer-b {
+  background: #1368ce;
+  box-shadow: 0 5px 0 #0d4a96;
+}
+.answer-c {
+  background: #d89e00;
+  color: #222;
+  box-shadow: 0 5px 0 #a07400;
+}
+.answer-d {
+  background: #26890c;
+  box-shadow: 0 5px 0 #1a600a;
+}
+*/
+.answer-a { 
+  background: #ee5056;  
+  box-shadow: 0 5px 0 var(--red-edge); 
+}
+.answer-b { 
+  background: #8e3b9e;
+  box-shadow: 0 5px 0 var(--blue-edge); 
+}
+.answer-c { 
+  background: #f5a33a; 
+  box-shadow: 0 5px 0 var(--gold-edge); 
+  color: #2b1055; 
+}
+.answer-d { 
+  background: #1f9e7a; 
+  box-shadow: 0 5px 0 var(--green-edge); 
+}
+
+.submit {
+  display: block;
+  margin: 24px auto 0;
+  padding: 14px 28px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  /*color: #33106b;*/
+  color: #2b1055;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.host-note {
+  margin: 20px 0 0;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .game-panel,
+  .question {
+    padding: 16px;
+  }
+  .answers {
+    grid-template-columns: 1fr;
+  }
+  .answer {
+    min-height: 88px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Multiplayer host and player controls. */
+.connection { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; }
+.connection::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--dot, #999);
+}
+.connection[data-state="on"] { --dot: #4cd137; }
+.connection[data-state="off"] { --dot: var(--red); }
+.connection[data-state="try"] { --dot: var(--yellow); }
+
+.panel { margin-bottom: 18px; }
+#groupTitle { margin: 0 0 10px; font-size: 1.15rem; font-weight: 800; overflow-wrap: anywhere; }
+#members { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+#members li {
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: rgba(255,255,255,.12);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+#quizCategories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+#quizCategories .tab:disabled { opacity: .45; cursor: not-allowed; }
+#quizPreview { margin-bottom: 8px; }
+#quizProgress { margin-right: 6px; }
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+#results { padding: 14px; border-radius: 8px; background: rgba(255,255,255,.08); }
+#resultsQuestion { margin: 0 0 10px; font-weight: 800; overflow-wrap: anywhere; }
+#resultsList li {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.1);
+  overflow-wrap: anywhere;
+}
+#resultsList li.correct { background: var(--green); }
+#resultsList small { display: block; opacity: .85; }
+
+.board { counter-reset: place; }
+.board li {
+  counter-increment: place;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.1);
+}
+.board li::before { content: counter(place); flex: none; min-width: 1.4em; font-weight: 800; opacity: .7; }
+.board li > span { flex: 1; font-weight: 700; overflow-wrap: anywhere; }
+.board li > strong { flex: none; }
+.board li.leader { background: #f5a33a;; }
+.board li.me { outline: 3px solid #fff; }
+#revealBtn { margin-top: 10px; }
+
+#nameForm { display: grid; gap: 10px; }
+#nameForm .muted, #nameForm .notice { margin: 0; }
+#nameNotice:empty { display: none; }
+#groupList li { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+#groupList strong { font-weight: 800; overflow-wrap: anywhere; }
+#joinedPanel > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+#joinedPanel > header h2 { margin: 0; overflow-wrap: anywhere; }
+details { margin-top: 24px; }
+textarea { margin-top: 8px; font-family: monospace; font-size: .85rem; }
