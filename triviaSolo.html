@@ -123,6 +123,36 @@
     flex-shrink: 0;
 }
 
+
+/* ------- Scroll Bar Decoration -------*/
+/* Firefox */
+.categories {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.35) var(--purple);
+}
+
+/* Chrome, Edge, Safari */
+.categories::-webkit-scrollbar {
+    width: 10px;
+}
+
+.categories::-webkit-scrollbar-track {
+    background: var(--purple-dark);
+    border-radius: 10px;
+}
+
+.categories::-webkit-scrollbar-thumb {
+    background: var(--purple);
+    border-radius: 10px;
+    border: 2px solid var(--purple-dark);
+}
+
+.categories::-webkit-scrollbar-thumb:hover {
+    background: #9257e8;
+}
+
+/* ---------------------------- */
+
     .cat {
       flex: 0 0 auto;
       width: 100%;
