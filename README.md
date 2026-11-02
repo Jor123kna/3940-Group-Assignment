@@ -209,7 +209,9 @@ End Users: Seniors in homes, Children in classrooms, the Authorized Users/Modera
 
 ## Tutorial
 
-Requires an IDE, Tomcat, ability to git clone the repo, Java 17
+**Requirements:** nny IDE, Tomcat, ability to git clone the repo, and Java 17
+
+1. Pull the repository and save it to an easily accessible folder on your computer.
 
 - Login, authenticated users taken to landing page
 - Choose between solo and group mode
