@@ -1,0 +1,351 @@
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+/**
+ * Small helpers shared by LoginServlet, SessionServlet, LogoutServlet
+ * and AdminServlet.
+ */
+public final class WebUtil {
+
+    // names of the values kept in the HTTP session after a login
+    public static final String USER_ID      = "userId";
+    public static final String DISPLAY_NAME = "displayName";
+    public static final String PLAY_MODE    = "playMode";
+
+    private WebUtil() { }
+
+    // responses
+
+    public static void sendJson(
+            HttpServletResponse response, int status, String json)
+            throws IOException {
+
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+
+        PrintWriter out = response.getWriter();
+        out.print(json);
+    }
+
+    public static void sendError(
+            HttpServletResponse response, int status, String message)
+            throws IOException {
+
+        sendJson(
+            response, status,
+            "{\"error\":\"" + escapeJson(message) + "\"}"
+        );
+    }
+
+    // request checks
+
+    /**
+     * Every change (POST) must come from our own pages, which send
+     * X-Requested-With. A form on another website cannot add that header,
+     * so this blocks cross-site request forgery.
+     */
+    public static boolean requireAjax(
+            HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+            return true;
+        }
+
+        sendError(response, HttpServletResponse.SC_FORBIDDEN,
+                  "Request not allowed.");
+        return false;
+    }
+
+    public static boolean isLoggedIn(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        return session != null && session.getAttribute(USER_ID) != null;
+    }
+
+    public static boolean isStaff(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return false;
+        }
+
+        Object mode = session.getAttribute(PLAY_MODE);
+        return mode != null && "staff".equalsIgnoreCase(mode.toString());
+    }
+
+    /** The logged in user's id, or -1 when nobody is logged in. */
+    public static long currentUserId(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return -1;
+        }
+
+        Object id = session.getAttribute(USER_ID);
+        return (id instanceof Long) ? (Long) id : -1;
+    }
+
+    /** Parses a numeric request parameter; null when missing or invalid. */
+    public static Long longParam(HttpServletRequest request, String name) {
+        String value = request.getParameter(name);
+
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    // text escaping
+
+    public static String escapeJson(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < value.length(); i++) {
+
+            char c = value.charAt(i);
+
+            switch (c) {
+                case '\\': sb.append("\\\\"); break;
+                case '"':  sb.append("\\\""); break;
+                case '\n': sb.append("\\n");  break;
+                case '\r': sb.append("\\r");  break;
+                case '\t': sb.append("\\t");  break;
+                default:
+                    if (c < 0x20) {
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public static String escapeXml(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < value.length(); i++) {
+
+            char c = value.charAt(i);
+
+            switch (c) {
+                case '&':  sb.append("&amp;");  break;
+                case '<':  sb.append("&lt;");   break;
+                case '>':  sb.append("&gt;");   break;
+                case '"':  sb.append("&quot;"); break;
+                case '\'': sb.append("&apos;"); break;
+                default:   sb.append(c);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    // trivia_xml
+
+    /**
+     * The text of the first &lt;question&gt; element in a trivia_xml value,
+     * or null when the XML is empty or unreadable.
+     */
+    public static String questionText(String xml) {
+
+        if (xml == null || xml.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            DocumentBuilderFactory factory =
+                DocumentBuilderFactory.newInstance();
+
+            // trivia_xml is data from the database: no DOCTYPE or
+            // external entities (XXE protection).
+            factory.setFeature(
+                "http://apache.org/xml/features/disallow-doctype-decl", true
+            );
+            factory.setXIncludeAware(false);
+            factory.setExpandEntityReferences(false);
+
+            DocumentBuilder builder = factory.newDocumentBuilder();
+
+            Document doc = builder.parse(
+                new InputSource(new StringReader(xml.trim()))
+            );
+
+            Element root = doc.getDocumentElement();
+            NodeList nodes = root.getElementsByTagName("question");
+
+            if (nodes.getLength() == 0) {
+                return null;
+            }
+
+            String text = nodes.item(0).getTextContent().trim();
+            return text.isEmpty() ? null : text;
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // picture / video of a question (stored in trivia_xml as
+    //   <media><type>image|video</type><url>...</url></media>)
+    // ------------------------------------------------------------------
+
+    /**
+     * True for an empty value (no media), an http(s) address, or a plain
+     * file name from the webapp's images folder. Spaces, quotes, angle
+     * brackets and "|" are refused (the multiplayer messages use "|").
+     */
+    public static boolean validMediaUrl(String url) {
+
+        if (url == null || url.isEmpty()) {
+            return true;
+        }
+
+        if (url.length() > 500) {
+            return false;
+        }
+
+        return url.matches("[A-Za-z0-9._-]+")
+            || url.matches("(?i)https?://[^\\s|<>\"']+");
+    }
+
+    /** "video" for YouTube links and video files, otherwise "image". */
+    public static String mediaTypeFor(String url) {
+
+        String lower = url.toLowerCase();
+
+        boolean youtube = lower.matches(
+            "https?://(www\\.|m\\.)?(youtube\\.com|youtube-nocookie\\.com|youtu\\.be)/.*");
+        boolean videoFile = lower.matches(
+            ".*\\.(mp4|webm|ogg|ogv|mov|m4v)([?#].*)?");
+
+        return (youtube || videoFile) ? "video" : "image";
+    }
+
+    /** The first &lt;media&gt;&lt;url&gt; in a trivia_xml value, or null. */
+    public static String mediaUrl(String xml) {
+
+        if (xml == null || xml.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            Element root = parseXml(xml).getDocumentElement();
+            NodeList media = root.getElementsByTagName("media");
+
+            if (media.getLength() == 0) {
+                return null;
+            }
+
+            NodeList urls =
+                ((Element) media.item(0)).getElementsByTagName("url");
+
+            if (urls.getLength() == 0) {
+                return null;
+            }
+
+            String url = urls.item(0).getTextContent().trim();
+            return url.isEmpty() ? null : url;
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the trivia_xml with its picture/video replaced by this url
+     * (an empty url removes the picture/video). Throws if the XML is
+     * unreadable, so the caller never overwrites a row it cannot parse.
+     */
+    public static String withMedia(String xml, String url) throws Exception {
+
+        Document doc = parseXml(xml);
+        Element root = doc.getDocumentElement();
+
+        NodeList old = root.getElementsByTagName("media");   // a live list
+
+        while (old.getLength() > 0) {
+            Node node = old.item(0);
+            node.getParentNode().removeChild(node);
+        }
+
+        if (url != null && !url.isEmpty()) {
+
+            Element media = doc.createElement("media");
+            Element type = doc.createElement("type");
+            Element address = doc.createElement("url");
+
+            type.setTextContent(mediaTypeFor(url));
+            address.setTextContent(url);
+
+            media.appendChild(type);
+            media.appendChild(address);
+            root.appendChild(media);
+        }
+
+        Transformer transformer =
+            TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+        StringWriter out = new StringWriter();
+        transformer.transform(new DOMSource(doc), new StreamResult(out));
+
+        return out.toString();
+    }
+
+    private static Document parseXml(String xml) throws Exception {
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
+        // trivia_xml is data from the database: no DOCTYPE or external
+        // entities (XXE protection).
+        factory.setFeature(
+            "http://apache.org/xml/features/disallow-doctype-decl", true
+        );
+        factory.setXIncludeAware(false);
+        factory.setExpandEntityReferences(false);
+
+        return factory.newDocumentBuilder().parse(
+            new InputSource(new StringReader(xml.trim()))
+        );
+    }
+}

@@ -1,9 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body></body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - Trivia</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/login.css">
+  <script src="js/common.js" defer></script>
+  <script src="js/login.js" defer></script>
+</head>
+<body>
+
+<a class="home" href="index.html">&larr; Home</a>
+
+<main>
+  <h1>Trivia</h1>
+
+  <form id="loginForm" class="panel">
+    <h2>Log in</h2>
+
+    <label>Name
+      <input id="name" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" autofocus>
+    </label>
+
+    <label>Password
+      <input id="password" type="password" autocomplete="current-password">
+    </label>
+
+    <p id="error" class="notice" role="alert"></p>
+
+    <button id="submitBtn" class="btn" type="submit">Log in</button>
+  </form>
+</main>
+
+</body>
 </html>

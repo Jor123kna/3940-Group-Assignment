@@ -1,0 +1,44 @@
+#panels {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+/* ---------- category list ---------- */
+#categoryList li { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+#categoryList .tab {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+#categoryList .tab.selected .badge { background: var(--purple); color: #fff; }
+#categoryList .btn { flex: none; }
+
+/* ---------- question list ---------- */
+#questionList header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+#questionList header p { margin: 0; font-weight: 800; white-space: pre-wrap; overflow-wrap: anywhere; }
+#questionList ul { margin-top: 8px; }
+#questionList li {
+    margin-top: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,.08);
+    overflow-wrap: anywhere;
+}
+#questionList li.correct { background: var(--green); font-weight: 700; }
+
+/* ---------- add-question form ---------- */
+legend span { font-weight: 400; }
+#answers .muted { margin-bottom: 10px; font-size: .85rem; }
+#categoriesEmpty, #questionsEmpty { margin-bottom: 14px; }
+#answers div { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+#answers input[type="text"] { flex: 1; }
+
+@media (max-width: 800px) {
+    #panels { grid-template-columns: 1fr; }
+}

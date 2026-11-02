@@ -1,9 +1,62 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body></body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trivia</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/triviaSolo.css">
+</head>
+<body>
+<div class="app">
+
+  <a class="home-link" href="index.html">&larr; Home</a>
+
+  <h1>Trivia</h1>
+
+  <div class="layout">
+
+    <div class="category-panel">
+
+      <h2>Categories</h2>
+      <nav id="categories" class="categories" aria-label="Categories"></nav>
+
+    </div>
+    
+    <div class="frame">
+
+      <p id="status" class="status">Loading categories...</p>
+
+      <section id="game" hidden>
+        <p id="progress" class="progress"></p>
+        
+        <div class="question-box">
+          <h2 id="questionText"></h2>
+          <img id="questionMedia" alt="" hidden>
+        </div>
+        
+        <p id="feedback" class="feedback" aria-live="polite"></p>
+        
+        <div id="choices" class="choices"></div>
+        
+        <div class="footer">
+          <button type="button" id="backBtn" class="nav">Back</button>
+          <button type="button" id="nextBtn" class="nav">Next</button>
+        </div>
+        
+      </section>
+      
+      <section id="results" class="results" hidden>
+        <p>Quiz complete!</p>
+        <div id="score" class="score"></div>
+        <p id="scoreText"></p>
+        <button type="button" id="againBtn" class="nav">Play again</button>
+      </section>
+      
+    </div>
+  </div>
+</div>
+
+<script src="js/triviaSolo.js"></script>
+</body>
 </html>

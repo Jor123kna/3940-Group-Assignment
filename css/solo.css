@@ -1,0 +1,6 @@
+.app { max-width: 880px; }
+.home { margin-bottom: 6px; }
+
+#categories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+#score { font-size: 3rem; }
+footer .btn { min-width: 110px; }
