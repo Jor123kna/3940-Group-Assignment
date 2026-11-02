@@ -1,0 +1,8 @@
+.git
+.github
+.idea
+.vscode
+README.md
+Dockerfile
+.dockerignore
+#does not image these files
