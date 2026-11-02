@@ -25,6 +25,8 @@ import jakarta.servlet.http.HttpServletResponse;
  *   POST /admin/category-delete   category_id
  *   POST /admin/question-add      category_id, question_text, correct,
  *                                 answer (4 times, empty ones are skipped)
+ *                                 media_url (optional picture or video)
+ *   POST /admin/question-media    question_id, media_url (empty removes it)
  *   POST /admin/question-delete   question_id
  *
  * A logged-out request gets 401 (the page then goes to login.html);
@@ -88,6 +90,8 @@ public class AdminServlet extends HttpServlet {
             deleteCategory(request, response);
         } else if ("/question-add".equals(path)) {
             addQuestion(request, response);
+        } else if ("/question-media".equals(path)) {
+            setQuestionMedia(request, response);
         } else if ("/question-delete".equals(path)) {
             deleteQuestion(request, response);
         } else if ("/account-add".equals(path)){
@@ -375,6 +379,7 @@ public class AdminServlet extends HttpServlet {
         // question_id -> JSON text of its answers, in order
         Map<Long, String> texts = new LinkedHashMap<>();
         Map<Long, StringBuilder> answers = new LinkedHashMap<>();
+        Map<Long, String> mediaUrls = new LinkedHashMap<>();
 
         try (
                 Connection conn = Database.getConnection();
@@ -399,6 +404,12 @@ public class AdminServlet extends HttpServlet {
                         texts.put(questionId,
                                 text != null ? text : "(unreadable question)");
                         answers.put(questionId, new StringBuilder());
+
+                        String mediaUrl = WebUtil.mediaUrl(
+                                rs.getString("trivia_xml")
+                        );
+                        mediaUrls.put(questionId,
+                                mediaUrl != null ? mediaUrl : "");
                     }
 
                     long answerId = rs.getLong("answer_id");
@@ -439,6 +450,8 @@ public class AdminServlet extends HttpServlet {
             json.append("{\"question_id\":").append(entry.getKey())
                     .append(",\"question_text\":\"")
                     .append(WebUtil.escapeJson(entry.getValue()))
+                    .append("\",\"media_url\":\"")
+                    .append(WebUtil.escapeJson(mediaUrls.get(entry.getKey())))
                     .append("\",\"answers\":[")
                     .append(answers.get(entry.getKey()))
                     .append("]}");
@@ -517,11 +530,33 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
+        // optional picture or video
+        String mediaUrl = request.getParameter("media_url");
+        mediaUrl = (mediaUrl == null) ? "" : mediaUrl.trim();
+
+        if (!WebUtil.validMediaUrl(mediaUrl)) {
+            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+                    "The picture or video address must start with " +
+                    "http:// or https:// and contain no spaces.");
+            return;
+        }
+
         // trivia_xml, in the same shape as the existing rows
         StringBuilder xml = new StringBuilder();
         xml.append("<trivia>\n");
         xml.append("       <question>")
                 .append(WebUtil.escapeXml(text)).append("</question>\n");
+
+        if (!mediaUrl.isEmpty()) {
+            xml.append("       <media>\n");
+            xml.append("         <type>")
+                    .append(WebUtil.mediaTypeFor(mediaUrl))
+                    .append("</type>\n");
+            xml.append("         <url>")
+                    .append(WebUtil.escapeXml(mediaUrl))
+                    .append("</url>\n");
+            xml.append("       </media>\n");
+        }
         xml.append("       <answers>\n");
 
         for (int i = 0; i < names.size(); i++) {
@@ -614,6 +649,82 @@ public class AdminServlet extends HttpServlet {
                 conn.rollback();
                 throw e;
             }
+
+        } catch (SQLException e) {
+            databaseError(response, e);
+        }
+    }
+
+
+    /** Sets, changes or (with an empty media_url) removes a question's picture or video. */
+    private void setQuestionMedia(
+            HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        Long questionId = WebUtil.longParam(request, "question_id");
+        String url = request.getParameter("media_url");
+        url = (url == null) ? "" : url.trim();
+
+        if (questionId == null) {
+            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+                    "question_id is required and must be a number.");
+            return;
+        }
+
+        if (!WebUtil.validMediaUrl(url)) {
+            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+                    "The picture or video address must start with " +
+                    "http:// or https:// and contain no spaces.");
+            return;
+        }
+
+        try (Connection conn = Database.getConnection()) {
+
+            String xml;
+
+            try (PreparedStatement select = conn.prepareStatement(
+                    "SELECT trivia_xml FROM questions WHERE question_id = ?")) {
+
+                select.setLong(1, questionId);
+
+                try (ResultSet rs = select.executeQuery()) {
+
+                    if (!rs.next()) {
+                        WebUtil.sendError(
+                                response, HttpServletResponse.SC_NOT_FOUND,
+                                "That question no longer exists.");
+                        return;
+                    }
+
+                    xml = rs.getString(1);
+                }
+            }
+
+            String updated;
+
+            try {
+                updated = WebUtil.withMedia(xml, url);
+            } catch (Exception e) {
+                WebUtil.sendError(
+                        response, HttpServletResponse.SC_BAD_REQUEST,
+                        "This question's XML could not be read, so its " +
+                        "picture or video was not changed.");
+                return;
+            }
+
+            try (PreparedStatement update = conn.prepareStatement(
+                    "UPDATE questions SET trivia_xml = ? " +
+                    "WHERE question_id = ?")) {
+
+                // OTHER = let the database convert the text to the column type
+                update.setObject(1, updated, Types.OTHER);
+                update.setLong(2, questionId);
+                update.executeUpdate();
+            }
+
+            WebUtil.sendJson(response, HttpServletResponse.SC_OK,
+                    "{\"question_id\":" + questionId +
+                    ",\"media_url\":\"" + WebUtil.escapeJson(url) + "\"}");
 
         } catch (SQLException e) {
             databaseError(response, e);

@@ -186,7 +186,7 @@ function renderTablet() {
     $("categoryName").textContent = "Multiplayer";
     $("questionNumber").textContent = "Current question";
     $("playerScore").textContent = `${(board.find((row) => row.id === myId) || { points: 0 }).points} points`;
-    showMedia($("questionMedia"), received.media ? { type: "image", url: received.media } : null);   // "" = no picture
+    showMedia($("questionMedia"), received.media ? { url: received.media } : null);   // "" = no picture or video; the kind is worked out from the address
     setNotice(...feedback(answered, revealed));
 
     $("choices").className = revealed ? "choices revealed" : answered ? "choices locked" : "choices";
