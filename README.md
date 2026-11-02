@@ -21,13 +21,14 @@ Thank you to everyone in Set G for making this project possible.
   - GUI design
   - User stories
   - Trivia question-and-answer bank
-  - Photos and videos
+  - README
 
 - Grace Jung
   - ERD Design
   - Functional requirements List
   - GUI design
   - User stories
+  - README
 
 ##### Development Team
 
@@ -80,6 +81,7 @@ Thank you to everyone in Set G for making this project possible.
   - Quiz creation/editing/removal test cases
   - Multiplayer Testing
   - Leaderboard Testing
+  - Database Testing
 - Vicente Goncalves
   - Individual quiz session tests
   - Quiz API route tests
@@ -89,11 +91,63 @@ Thank you to everyone in Set G for making this project possible.
   - SQL injection/sercurity testing for login and signup
   - Login tests
 
-## How to use the application
+## Functional Requirements
 
--
+- Home page (index) opens to trivia categories page
+  - Therefore you dont NEED to be logged in.
+  - Allow guests to plays games(if we want game levels to the app dont store them)
+  - Add restrictions to creating a new quiz and hosting a session.
+  - You do not need an account to join a session but they will need to enter dummy name
+- Ability to make accounts for the authenticated users
+  - Again guests can play
+- Clicking a category will take the user to the categories trivia page
+  - We need to show all games on first load
+  - Categories need to be sorted
+- Individual Mode
+  - Games that (don't create a session)
+- Authenticated users can upload new questions
+  - Restriction on uploading/editing quizzes and questions
+- Newly uploaded questions must have tags for categories
+  - New quizzes must choose AT LEAST 1 category
+- The question will save with user uploaded the question
+- Authorized users can delete questions
+  - Restriction on deleting questions, adding questions, no edit
+- Group Trivia Mode, Moderated/Kahoot Mode, Kahoot-like quiz
+- Accounts for authorized users and moderators
+- Use of AJAX to prefetch questions
+- Tomcat/Servlet to develop the backend
+- Each trivia question shall auto-play an audio/video clip or display a picture or display a document upon which the trivia question is based. One of the four (or two) possible answers being displayed shall be the correct one. The app shall confirm if the pressed answer is correct or incorrect.
+- The trivial question along with the answers and link to the youtube video shall be uploaded as an XML string in one of the columns.
+- The identity of the user which uploaded the content along with the date the content was uploaded shall be recorded.
 
-## Features
+## Non-functional Requirements
+
+- Gui Design
+- Maintainability: ease of use, deletion/addition of questions
+- Authentication & Authorization: access to staff functions.
+- Media streaming/uploading: youtube videos or uploaded videos instead of just images
+- Security for accounts: password hashing, validation, etc
+- Device accessibility: Make available/compatible on tablets, phones, computers.
+
+## User Stories
+
+End Users: Seniors in homes, Children in classrooms, the Authorized Users/Moderators making questions on the site itself
+
+- As a senior in a care home, I want a simple and intuitive UI so that I can navigate the trivia section without worry.
+
+- As a nurse in a care home with my hands full taking care of multiple duties, I want a simple and intuitive UI so that I can host trivia night without worry.
+
+- As a Moderator I want to be able to create new trivia questions and set them to categories quickly and conveniently.
+
+- As a person who loves trivia games, I want to test my knowledge in a quiz with multiple-choice style questions.
+
+- As a young child, I want to play a simple electronic game to compete with my friends.
+
+- As a senior wanting to stay healthy, I want to sharpen my cognition by testing my general knowledge.
+
+- As a parent of a fifth-grade student, I want my child to have access to a game that can advance their learning ahead of their peers.
+
+## App Features
 
 - User Authentication
   - Users can sign up and login in the application
@@ -152,3 +206,26 @@ Thank you to everyone in Set G for making this project possible.
 - Git / GitHub
 - Figma
 - Google Docs
+
+## Tutorial
+
+Requires an IDE, Tomcat, ability to git clone the repo, Java 17
+
+- Login, authenticated users taken to landing page
+- Choose between solo and group mode
+- In group mode:
+- Join a group of trivia competitors
+- Moderator chooses trivia category
+  - Admin can also add a category
+  - If admin adds a question live, it doesn't show up live in the quiz
+- Wait for the admin to broadcast a question (moderator chooses question)
+- copy of solo quiz, only displayed if admin chooses to
+- Points added whenever question is answered correctly
+- Whatever index admin chooses -> question displayed
+- Categories: art, english, geography, health, history, math, physics, science
+- Landing solo or multiplayer
+-
+-
+- need to know what happens when we delete questions live
+- parsing to get to online media
+-
