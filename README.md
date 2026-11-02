@@ -209,6 +209,7 @@ End Users: Seniors in homes, Children in classrooms, the Authorized Users/Modera
 
 ## Tutorial
 
+<<<<<<< HEAD
 Requires an IDE, Tomcat, ability to git clone the repo, Java 17
 
 - Login, authenticated users taken to landing page
@@ -224,9 +225,29 @@ Requires an IDE, Tomcat, ability to git clone the repo, Java 17
 - Whatever index admin chooses -> question displayed
 - Categories: art, english, geography, health, history, math, physics, science
 - Landing solo or multiplayer
+=======
+**Requirements:** Any IDE, Tomcat, ability to git clone the repo, and Java 17
+
+1. Login, authenticated users are taken to landing page
+2. Choose between solo and group mode
+3. In group mode:
+4. Join a group of trivia competitors
+5. Moderator chooses trivia category
+  - Admin can also add a category
+  - If admin adds a question live, it doesn't show up live in the quiz
+6. Wait for the admin to broadcast a question (moderator chooses question)
+7. copy of solo quiz, only displayed if admin chooses to
+8. Points added whenever question is answered correctly
+9. Whatever index admin chooses -> question displayed
+10. Categories: art, english, geography, health, history, math, physics, science
+11. Landing solo or multiplayer
+>>>>>>> docs-update-readme-local
 -
 -
 - need to know what happens when we delete questions live
 - parsing to get to online media
 -
+<<<<<<< HEAD
 -
+=======
+>>>>>>> docs-update-readme-local
