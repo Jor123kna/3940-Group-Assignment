@@ -209,15 +209,26 @@ End Users: Seniors in homes, Children in classrooms, the Authorized Users/Modera
 
 ## Tutorial
 
-**Requirements:** nny IDE, Tomcat, ability to git clone the repo, and Java 17
+**Requirements:** Any IDE, Tomcat, ability to git clone the repo, and Java 17
 
 1. Pull the repository and save it to an easily accessible folder on your computer.
+2. Move the file to the `webapps` folder in your Tomcat folder
+3. Compile the classes properly
+4. Startup the the application and navigate to `http://localhost:[your tomcat port here]/3940-Group-Assignment/`
 
-- Login, authenticated users taken to landing page
-- Choose between solo and group mode
-- In group mode:
-- Join a group of trivia competitors
-- Moderator chooses trivia category
+#### Authorized Users
+- When you login, authenticated users are taken to the authorized users landing page.
+
+#### Regular Users
+Regular users can choose between solo and group mode.
+
+##### Solo Mode
+Users can pick a category to quiz themselves in. Once they're done, they can choose to try again or pick another category to quiz themselves in.
+
+##### Group Mode
+- Users can join a group of trivia competitors, comprised of other users.
+- A moderator must be present to enable full functionality of this mode.
+- The moderator chooses a trivia category
   - Admin can also add a category
   - If admin adds a question live, it doesn't show up live in the quiz
 - Wait for the admin to broadcast a question (moderator chooses question)
