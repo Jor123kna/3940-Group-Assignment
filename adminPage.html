@@ -179,6 +179,11 @@
       gap: 12px;
     }
     .q-text { font-weight: 800; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .q-media {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px; margin-top: 10px; font-size: .85rem; opacity: .9;
+    }
+    .q-media span { overflow-wrap: anywhere; flex: 1 1 200px; }
     .q-answers { list-style: none; margin: 8px 0 0; padding: 0; }
     .q-answers li {
       padding: 4px 10px;
@@ -250,6 +255,14 @@
 
         <label class="field" for="qText">Question</label>
         <textarea id="qText" maxlength="500"></textarea>
+
+        <label class="field" for="qFile">Upload a picture or video <span style="font-weight:400">&mdash; optional</span></label>
+        <input id="qFile" type="file" accept="image/*,video/*,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.ogg,.ogv,.mov,.m4v">
+        <p class="hint">Pick a file (up to 50 MB). It is uploaded and its address is filled in below.</p>
+
+        <label class="field" for="qMedia">Picture or video address <span style="font-weight:400">&mdash; or paste a link instead</span></label>
+        <input id="qMedia" type="text" maxlength="500" placeholder="https://example.com/photo.jpg or a YouTube link">
+        <p class="hint">An image link (.jpg, .png, .gif, .webp), a video file (.mp4, .webm) or a YouTube link. Players see it above the answers.</p>
 
         <label class="field">Answers <span style="font-weight:400">&mdash; tick the correct one</span></label>
         <p class="hint">Fill in 2 to 4 answers. Leave the extra boxes empty for a true/false question.</p>
@@ -567,9 +580,143 @@
       });
       item.appendChild(answers);
 
+      const mediaRow = document.createElement("div");
+      mediaRow.className = "q-media";
+
+      const mediaText = document.createElement("span");
+      mediaText.textContent = q.media_url
+              ? "Picture/video: " + q.media_url
+              : "No picture or video yet";
+
+      const mediaBtn = document.createElement("button");
+      mediaBtn.type = "button";
+      mediaBtn.className = "primary";
+      mediaBtn.textContent = q.media_url ? "Change picture/video" : "Add picture/video";
+      mediaBtn.onclick = function() { setMedia(q, mediaBtn); };
+
+      // upload a file straight from this computer
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = MEDIA_ACCEPT;
+      fileInput.hidden = true;
+
+      const uploadBtn = document.createElement("button");
+      uploadBtn.type = "button";
+      uploadBtn.className = "primary";
+      uploadBtn.textContent = "Upload picture/video";
+      uploadBtn.onclick = function() { fileInput.click(); };
+
+      fileInput.onchange = function() {
+        if (fileInput.files.length == 0) return;
+        uploadBtn.disabled = true;
+        mediaBtn.disabled = true;
+        say("Uploading...", false);
+
+        uploadFile(fileInput.files[0],
+                function(url) { saveMedia(q, url, [uploadBtn, mediaBtn]); },
+                function(message) {
+                  uploadBtn.disabled = false;
+                  mediaBtn.disabled = false;
+                  fileInput.value = "";
+                  say(message, true);
+                });
+      };
+
+      mediaRow.appendChild(mediaText);
+      mediaRow.appendChild(uploadBtn);
+      mediaRow.appendChild(mediaBtn);
+      mediaRow.appendChild(fileInput);
+      item.appendChild(mediaRow);
+
       holder.appendChild(item);
     });
   }
+
+  // Saves a new picture/video address for an existing question (empty = remove it).
+  function setMedia(q, button) {
+    const answer = window.prompt(
+            "Picture or video address for this question.\n" +
+            "An image link, a video file (.mp4, .webm) or a YouTube link.\n" +
+            "Leave it empty to remove the current one.",
+            q.media_url || "");
+    if (answer === null) return;          // cancelled
+
+    saveMedia(q, answer.trim(), [button]);
+  }
+
+  function saveMedia(q, url, buttons) {
+    function enable() { buttons.forEach(function(b) { b.disabled = false; }); }
+    buttons.forEach(function(b) { b.disabled = true; });
+
+    request("POST", "admin/question-media",
+            form([["question_id", q.question_id], ["media_url", url]]),
+            function() {
+              enable();
+              say(url === "" ? "Picture/video removed." : "Picture/video saved.", false);
+              loadQuestions();
+            },
+            function(message) {
+              enable();
+              say(message, true);
+            });
+  }
+
+  const MEDIA_ACCEPT = "image/*,video/*,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.ogg,.ogv,.mov,.m4v";
+
+  // Sends one file to the server; onDone gets the address to save with the question.
+  function uploadFile(file, onDone, onError) {
+    if (file.size > 50 * 1024 * 1024) {
+      onError("That file is too big. The limit is 50 MB.");
+      return;
+    }
+
+    const data = new FormData();
+    data.append("file", file);
+
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState != 4) return;
+
+      if (this.status == 401) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      let result = null;
+      try { result = JSON.parse(this.responseText); } catch (e) { }
+
+      if (this.status == 200 && result && result.media_url) {
+        onDone(result.media_url);
+      } else {
+        onError((result && result.error) ||
+                "The upload failed (status " + this.status + ").");
+      }
+    };
+    xhttp.open("POST", "upload-media", true);
+    xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhttp.send(data);           // the browser sets the multipart Content-Type itself
+  }
+
+  // Picking a file in the "add question" form uploads it and fills in the address.
+  $("qFile").onchange = function() {
+    const input = $("qFile");
+    if (input.files.length == 0) return;
+
+    $("addQuestionBtn").disabled = true;
+    say("Uploading...", false);
+
+    uploadFile(input.files[0],
+            function(url) {
+              $("addQuestionBtn").disabled = false;
+              $("qMedia").value = url;
+              say("Uploaded. It will be saved when you add the question.", false);
+            },
+            function(message) {
+              $("addQuestionBtn").disabled = false;
+              input.value = "";
+              say(message, true);
+            });
+  };
 
   function deleteQuestion(q, button) {
     if (!window.confirm("Delete this question?\n\n" + q.question_text)) return;
@@ -606,7 +753,8 @@
 
     const fields = [["category_id", selected.category_id],
       ["question_text", text],
-      ["correct", correct]];
+      ["correct", correct],
+      ["media_url", $("qMedia").value.trim()]];
     boxes.forEach(function(b) { fields.push(["answer", b.value]); });
 
     const button = $("addQuestionBtn");
@@ -616,6 +764,8 @@
             function() {
               button.disabled = false;
               $("qText").value = "";
+              $("qMedia").value = "";
+              $("qFile").value = "";
               boxes.forEach(function(b) { b.value = ""; });
               document.querySelector("input[name=correct][value='0']").checked = true;
               say("Question added.", false);
