@@ -271,7 +271,7 @@ $("askBtn").onclick = () => {
         id: newId(),
         questionId: q.question_id,
         text: clean(q.question_text),
-        media: q.media && (q.media.type || "image") === "image" ? clean(q.media.url || "") : "",
+        media: q.media && q.media.url ? clean(q.media.url) : "",
         answers: q.answers.map((answer) => clean(answer.answer_name)),
         correct: q.answers.findIndex((answer) => answer.correct),
         votes: {},
