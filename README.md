@@ -237,8 +237,3 @@ Users can pick a category to quiz themselves in. Once they're done, they can cho
 - Whatever index admin chooses -> question displayed
 - Categories: art, english, geography, health, history, math, physics, science
 - Landing solo or multiplayer
--
--
-- need to know what happens when we delete questions live
-- parsing to get to online media
--
