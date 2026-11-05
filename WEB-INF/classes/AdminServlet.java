@@ -72,28 +72,8 @@ public class AdminServlet extends HttpServlet {
   ) throws ServletException, IOException {
     request.setCharacterEncoding("UTF-8");
 
-        if (!WebUtil.requireAjax(request, response)) {
-            return;
-        }
-
-        String path = request.getPathInfo();
-
-        if ("/category-add".equals(path)) {
-            addCategory(request, response);
-        } else if ("/category-delete".equals(path)) {
-            deleteCategory(request, response);
-        } else if ("/question-add".equals(path)) {
-            addQuestion(request, response);
-        } else if ("/question-media".equals(path)) {
-            setQuestionMedia(request, response);
-        } else if ("/question-delete".equals(path)) {
-            deleteQuestion(request, response);
-        } else if ("/account-add".equals(path)){
-            addAccount(request, response);
-        } else {
-            WebUtil.sendError(response, HttpServletResponse.SC_NOT_FOUND,
-                    "Unknown admin action.");
-        }
+    if (!authorize(request, response)) {
+      return;
     }
 
     if (!WebUtil.requireAjax(request, response)) {
@@ -108,6 +88,8 @@ public class AdminServlet extends HttpServlet {
       deleteCategory(request, response);
     } else if ("/question-add".equals(path)) {
       addQuestion(request, response);
+    } else if ("/question-media".equals(path)) {
+      setQuestionMedia(request, response);
     } else if ("/question-delete".equals(path)) {
       deleteQuestion(request, response);
     } else if ("/account-add".equals(path)) {
@@ -227,117 +209,16 @@ public class AdminServlet extends HttpServlet {
       return;
     }
 
-    // ------------------------------------------------------------------
-    // questions
-    // ------------------------------------------------------------------
-
-    private static final String LIST_QUESTIONS =
-            "SELECT q.question_id, q.trivia_xml, " +
-                    "       a.answer_id, a.answer_name, a.correctness " +
-                    "FROM question_categories qc " +
-                    "JOIN questions q ON q.question_id = qc.question_id " +
-                    "LEFT JOIN answers a ON a.question_id = q.question_id " +
-                    "WHERE qc.category_id = ? " +
-                    "ORDER BY q.question_id, a.answer_id";
-
-    private void listQuestions(
-            HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        Long categoryId = WebUtil.longParam(request, "category_id");
-
-        if (categoryId == null) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "category_id is required and must be a number.");
-            return;
-        }
-
-        // question_id -> JSON text of its answers, in order
-        Map<Long, String> texts = new LinkedHashMap<>();
-        Map<Long, StringBuilder> answers = new LinkedHashMap<>();
-        Map<Long, String> mediaUrls = new LinkedHashMap<>();
-
-        try (
-                Connection conn = Database.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(LIST_QUESTIONS);
-        ) {
-
-            stmt.setLong(1, categoryId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-
-                while (rs.next()) {
-
-                    long questionId = rs.getLong("question_id");
-
-                    if (!texts.containsKey(questionId)) {
-
-                        String text = WebUtil.questionText(
-                                rs.getString("trivia_xml")
-                        );
-
-                        // keep unreadable rows visible so they can be deleted
-                        texts.put(questionId,
-                                text != null ? text : "(unreadable question)");
-                        answers.put(questionId, new StringBuilder());
-
-                        String mediaUrl = WebUtil.mediaUrl(
-                                rs.getString("trivia_xml")
-                        );
-                        mediaUrls.put(questionId,
-                                mediaUrl != null ? mediaUrl : "");
-                    }
-
-                    long answerId = rs.getLong("answer_id");
-
-                    if (rs.wasNull()) {
-                        continue;     // question with no answers
-                    }
-
-                    StringBuilder list = answers.get(questionId);
-
-                    if (list.length() > 0) {
-                        list.append(",");
-                    }
-
-                    list.append("{\"answer_id\":").append(answerId)
-                            .append(",\"answer_name\":\"")
-                            .append(WebUtil.escapeJson(rs.getString("answer_name")))
-                            .append("\",\"correct\":")
-                            .append(rs.getBoolean("correctness"))
-                            .append("}");
-                }
-            }
-
-        } catch (SQLException e) {
-            databaseError(response, e);
-            return;
-        }
-
-        StringBuilder json = new StringBuilder("[");
-        boolean first = true;
-
-        for (Map.Entry<Long, String> entry : texts.entrySet()) {
-
-            if (!first) {
-                json.append(",");
-            }
-
-            json.append("{\"question_id\":").append(entry.getKey())
-                    .append(",\"question_text\":\"")
-                    .append(WebUtil.escapeJson(entry.getValue()))
-                    .append("\",\"media_url\":\"")
-                    .append(WebUtil.escapeJson(mediaUrls.get(entry.getKey())))
-                    .append("\",\"answers\":[")
-                    .append(answers.get(entry.getKey()))
-                    .append("]}");
-
-            first = false;
-        }
-
-        json.append("]");
-
-        WebUtil.sendJson(response, HttpServletResponse.SC_OK, json.toString());
+    if (
+      name.length() > MAX_CATEGORY_NAME ||
+      description.length() > MAX_DESCRIPTION
+    ) {
+      WebUtil.sendError(
+        response,
+        HttpServletResponse.SC_BAD_REQUEST,
+        "The name or description is too long."
+      );
+      return;
     }
 
     try (Connection conn = Database.getConnection()) {
@@ -348,326 +229,8 @@ public class AdminServlet extends HttpServlet {
       ) {
         check.setString(1, name);
 
-        Long categoryId = WebUtil.longParam(request, "category_id");
-        Long correctIndex = WebUtil.longParam(request, "correct");
-        String text = request.getParameter("question_text");
-        String[] boxes = request.getParameterValues("answer");
-
-        text = (text == null) ? "" : text.trim();
-
-        if (categoryId == null || correctIndex == null || boxes == null) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "The form is incomplete.");
-            return;
-        }
-
-        if (text.isEmpty()) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "Enter the question.");
-            return;
-        }
-
-        if (text.length() > MAX_QUESTION) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "The question is too long.");
-            return;
-        }
-
-        // keep the filled-in answers; remember which one was ticked
-        List<String> names = new ArrayList<>();
-        int correctPosition = -1;
-
-        for (int i = 0; i < boxes.length && i < 4; i++) {
-
-            String name = (boxes[i] == null) ? "" : boxes[i].trim();
-
-            if (name.isEmpty()) {
-                continue;
-            }
-
-            if (name.length() > MAX_ANSWER) {
-                WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                        "An answer is too long.");
-                return;
-            }
-
-            if (i == correctIndex) {
-                correctPosition = names.size();
-            }
-
-            names.add(name);
-        }
-
-        if (names.size() < 2) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "Enter at least two answers.");
-            return;
-        }
-
-        if (correctPosition < 0) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "The answer ticked as correct is empty.");
-            return;
-        }
-
-        // optional picture or video
-        String mediaUrl = request.getParameter("media_url");
-        mediaUrl = (mediaUrl == null) ? "" : mediaUrl.trim();
-
-        if (!WebUtil.validMediaUrl(mediaUrl)) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "The picture or video address must start with " +
-                    "http:// or https:// and contain no spaces.");
-            return;
-        }
-
-        // trivia_xml, in the same shape as the existing rows
-        StringBuilder xml = new StringBuilder();
-        xml.append("<trivia>\n");
-        xml.append("       <question>")
-                .append(WebUtil.escapeXml(text)).append("</question>\n");
-
-        if (!mediaUrl.isEmpty()) {
-            xml.append("       <media>\n");
-            xml.append("         <type>")
-                    .append(WebUtil.mediaTypeFor(mediaUrl))
-                    .append("</type>\n");
-            xml.append("         <url>")
-                    .append(WebUtil.escapeXml(mediaUrl))
-                    .append("</url>\n");
-            xml.append("       </media>\n");
-        }
-        xml.append("       <answers>\n");
-
-        for (int i = 0; i < names.size(); i++) {
-            xml.append("         <answer correct=\"")
-                    .append(i == correctPosition)
-                    .append("\">")
-                    .append(WebUtil.escapeXml(names.get(i)))
-                    .append("</answer>\n");
-        }
-
-        xml.append("       </answers>\n");
-        xml.append("     </trivia>");
-
-        try (Connection conn = Database.getConnection()) {
-
-            conn.setAutoCommit(false);
-
-            try {
-
-                try (PreparedStatement check = conn.prepareStatement(
-                        "SELECT 1 FROM categories WHERE category_id = ?")) {
-
-                    check.setLong(1, categoryId);
-
-                    try (ResultSet rs = check.executeQuery()) {
-                        if (!rs.next()) {
-                            conn.rollback();
-                            WebUtil.sendError(
-                                    response, HttpServletResponse.SC_NOT_FOUND,
-                                    "That category no longer exists."
-                            );
-                            return;
-                        }
-                    }
-                }
-
-                long questionId;
-
-                try (PreparedStatement insert = conn.prepareStatement(
-                        "INSERT INTO questions " +
-                                "(uploaded_by, media_type, num_answer_choices, " +
-                                "trivia_xml, date_uploaded) " +
-                                "VALUES (?, 'text', ?, ?, now()) " +
-                                "RETURNING question_id")) {
-
-                    insert.setLong(1, WebUtil.currentUserId(request));
-                    insert.setInt(2, names.size());
-                    // OTHER = let the database convert the text to whatever
-                    // type the column is (text or xml)
-                    insert.setObject(3, xml.toString(), Types.OTHER);
-
-                    try (ResultSet rs = insert.executeQuery()) {
-                        rs.next();
-                        questionId = rs.getLong(1);
-                    }
-                }
-
-                try (PreparedStatement insert = conn.prepareStatement(
-                        "INSERT INTO answers " +
-                                "(answer_name, question_id, correctness) " +
-                                "VALUES (?, ?, ?)")) {
-
-                    for (int i = 0; i < names.size(); i++) {
-                        insert.setString(1, names.get(i));
-                        insert.setLong(2, questionId);
-                        insert.setBoolean(3, i == correctPosition);
-                        insert.addBatch();
-                    }
-
-                    insert.executeBatch();
-                }
-
-                try (PreparedStatement insert = conn.prepareStatement(
-                        "INSERT INTO question_categories " +
-                                "(question_id, category_id) VALUES (?, ?)")) {
-
-                    insert.setLong(1, questionId);
-                    insert.setLong(2, categoryId);
-                    insert.executeUpdate();
-                }
-
-                conn.commit();
-
-                WebUtil.sendJson(
-                        response, HttpServletResponse.SC_OK,
-                        "{\"question_id\":" + questionId + "}"
-                );
-
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            }
-
-        } catch (SQLException e) {
-            databaseError(response, e);
-        }
-    }
-
-
-    /** Sets, changes or (with an empty media_url) removes a question's picture or video. */
-    private void setQuestionMedia(
-            HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        Long questionId = WebUtil.longParam(request, "question_id");
-        String url = request.getParameter("media_url");
-        url = (url == null) ? "" : url.trim();
-
-        if (questionId == null) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "question_id is required and must be a number.");
-            return;
-        }
-
-        if (!WebUtil.validMediaUrl(url)) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "The picture or video address must start with " +
-                    "http:// or https:// and contain no spaces.");
-            return;
-        }
-
-        try (Connection conn = Database.getConnection()) {
-
-            String xml;
-
-            try (PreparedStatement select = conn.prepareStatement(
-                    "SELECT trivia_xml FROM questions WHERE question_id = ?")) {
-
-                select.setLong(1, questionId);
-
-                try (ResultSet rs = select.executeQuery()) {
-
-                    if (!rs.next()) {
-                        WebUtil.sendError(
-                                response, HttpServletResponse.SC_NOT_FOUND,
-                                "That question no longer exists.");
-                        return;
-                    }
-
-                    xml = rs.getString(1);
-                }
-            }
-
-            String updated;
-
-            try {
-                updated = WebUtil.withMedia(xml, url);
-            } catch (Exception e) {
-                WebUtil.sendError(
-                        response, HttpServletResponse.SC_BAD_REQUEST,
-                        "This question's XML could not be read, so its " +
-                        "picture or video was not changed.");
-                return;
-            }
-
-            try (PreparedStatement update = conn.prepareStatement(
-                    "UPDATE questions SET trivia_xml = ? " +
-                    "WHERE question_id = ?")) {
-
-                // OTHER = let the database convert the text to the column type
-                update.setObject(1, updated, Types.OTHER);
-                update.setLong(2, questionId);
-                update.executeUpdate();
-            }
-
-            WebUtil.sendJson(response, HttpServletResponse.SC_OK,
-                    "{\"question_id\":" + questionId +
-                    ",\"media_url\":\"" + WebUtil.escapeJson(url) + "\"}");
-
-        } catch (SQLException e) {
-            databaseError(response, e);
-        }
-    }
-
-    private void deleteQuestion(
-            HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        Long questionId = WebUtil.longParam(request, "question_id");
-
-        if (questionId == null) {
-            WebUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST,
-                    "question_id is required and must be a number.");
-            return;
-        }
-
-        try (Connection conn = Database.getConnection()) {
-
-            conn.setAutoCommit(false);
-
-            int removed;
-
-            try {
-                run(conn, "DELETE FROM answers WHERE question_id = ?",
-                        questionId);
-                run(conn, "DELETE FROM question_categories WHERE question_id = ?",
-                        questionId);
-                removed = run(conn,
-                        "DELETE FROM questions WHERE question_id = ?", questionId);
-
-                conn.commit();
-
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            }
-
-            if (removed == 0) {
-                WebUtil.sendError(response, HttpServletResponse.SC_NOT_FOUND,
-                        "That question no longer exists.");
-                return;
-            }
-
-            WebUtil.sendJson(response, HttpServletResponse.SC_OK,
-                    "{\"deleted\":true}");
-
-        } catch (SQLException e) {
-            databaseError(response, e);
-        }
-    }
-
-    private void addAccount(
-            HttpServletRequest request,
-            HttpServletResponse response) throws IOException {
-
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-
-        username = (username == null) ? "" : username.trim();
-
-        if (username.isEmpty() || password == null || password.isEmpty()) {
+        try (ResultSet rs = check.executeQuery()) {
+          if (rs.next()) {
             WebUtil.sendError(
               response,
               HttpServletResponse.SC_CONFLICT,
@@ -846,6 +409,7 @@ public class AdminServlet extends HttpServlet {
     // question_id -> JSON text of its answers, in order
     Map<Long, String> texts = new LinkedHashMap<>();
     Map<Long, StringBuilder> answers = new LinkedHashMap<>();
+    Map<Long, String> mediaUrls = new LinkedHashMap<>();
 
     try (
       Connection conn = Database.getConnection();
@@ -866,6 +430,9 @@ public class AdminServlet extends HttpServlet {
               text != null ? text : "(unreadable question)"
             );
             answers.put(questionId, new StringBuilder());
+
+            String mediaUrl = WebUtil.mediaUrl(rs.getString("trivia_xml"));
+            mediaUrls.put(questionId, mediaUrl != null ? mediaUrl : "");
           }
 
           long answerId = rs.getLong("answer_id");
@@ -908,6 +475,8 @@ public class AdminServlet extends HttpServlet {
         .append(entry.getKey())
         .append(",\"question_text\":\"")
         .append(WebUtil.escapeJson(entry.getValue()))
+        .append("\",\"media_url\":\"")
+        .append(WebUtil.escapeJson(mediaUrls.get(entry.getKey())))
         .append("\",\"answers\":[")
         .append(answers.get(entry.getKey()))
         .append("]}");
@@ -1003,6 +572,20 @@ public class AdminServlet extends HttpServlet {
       return;
     }
 
+    // optional picture or video
+    String mediaUrl = request.getParameter("media_url");
+    mediaUrl = (mediaUrl == null) ? "" : mediaUrl.trim();
+
+    if (!WebUtil.validMediaUrl(mediaUrl)) {
+      WebUtil.sendError(
+        response,
+        HttpServletResponse.SC_BAD_REQUEST,
+        "The picture or video address must start with " +
+          "http:// or https:// and contain no spaces."
+      );
+      return;
+    }
+
     // trivia_xml, in the same shape as the existing rows
     StringBuilder xml = new StringBuilder();
     xml.append("<trivia>\n");
@@ -1010,6 +593,19 @@ public class AdminServlet extends HttpServlet {
       .append("       <question>")
       .append(WebUtil.escapeXml(text))
       .append("</question>\n");
+
+    if (!mediaUrl.isEmpty()) {
+      xml.append("       <media>\n");
+      xml
+        .append("         <type>")
+        .append(WebUtil.mediaTypeFor(mediaUrl))
+        .append("</type>\n");
+      xml
+        .append("         <url>")
+        .append(WebUtil.escapeXml(mediaUrl))
+        .append("</url>\n");
+      xml.append("       </media>\n");
+    }
     xml.append("       <answers>\n");
 
     for (int i = 0; i < names.size(); i++) {
@@ -1110,6 +706,97 @@ public class AdminServlet extends HttpServlet {
         conn.rollback();
         throw e;
       }
+    } catch (SQLException e) {
+      databaseError(response, e);
+    }
+  }
+
+  /** Sets, changes or (with an empty media_url) removes a question's picture or video. */
+  private void setQuestionMedia(
+    HttpServletRequest request,
+    HttpServletResponse response
+  ) throws IOException {
+    Long questionId = WebUtil.longParam(request, "question_id");
+    String url = request.getParameter("media_url");
+    url = (url == null) ? "" : url.trim();
+
+    if (questionId == null) {
+      WebUtil.sendError(
+        response,
+        HttpServletResponse.SC_BAD_REQUEST,
+        "question_id is required and must be a number."
+      );
+      return;
+    }
+
+    if (!WebUtil.validMediaUrl(url)) {
+      WebUtil.sendError(
+        response,
+        HttpServletResponse.SC_BAD_REQUEST,
+        "The picture or video address must start with " +
+          "http:// or https:// and contain no spaces."
+      );
+      return;
+    }
+
+    try (Connection conn = Database.getConnection()) {
+      String xml;
+
+      try (
+        PreparedStatement select = conn.prepareStatement(
+          "SELECT trivia_xml FROM questions WHERE question_id = ?"
+        )
+      ) {
+        select.setLong(1, questionId);
+
+        try (ResultSet rs = select.executeQuery()) {
+          if (!rs.next()) {
+            WebUtil.sendError(
+              response,
+              HttpServletResponse.SC_NOT_FOUND,
+              "That question no longer exists."
+            );
+            return;
+          }
+
+          xml = rs.getString(1);
+        }
+      }
+
+      String updated;
+
+      try {
+        updated = WebUtil.withMedia(xml, url);
+      } catch (Exception e) {
+        WebUtil.sendError(
+          response,
+          HttpServletResponse.SC_BAD_REQUEST,
+          "This question's XML could not be read, so its " +
+            "picture or video was not changed."
+        );
+        return;
+      }
+
+      try (
+        PreparedStatement update = conn.prepareStatement(
+          "UPDATE questions SET trivia_xml = ? " + "WHERE question_id = ?"
+        )
+      ) {
+        // OTHER = let the database convert the text to the column type
+        update.setObject(1, updated, Types.OTHER);
+        update.setLong(2, questionId);
+        update.executeUpdate();
+      }
+
+      WebUtil.sendJson(
+        response,
+        HttpServletResponse.SC_OK,
+        "{\"question_id\":" +
+          questionId +
+          ",\"media_url\":\"" +
+          WebUtil.escapeJson(url) +
+          "\"}"
+      );
     } catch (SQLException e) {
       databaseError(response, e);
     }
