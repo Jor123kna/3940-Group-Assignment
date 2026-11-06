@@ -11,7 +11,7 @@
 .question-box {
     margin-bottom: 14px;
     padding: 22px 18px;
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: #fff;
     color: #222;
     text-align: center;
@@ -21,7 +21,6 @@
     margin: 0;
     font-size: clamp(1.2rem, 3.5vw, 1.8rem);
     line-height: 1.3;
-    overflow-wrap: anywhere;
 }
 
 /* picture or video under the question text (see showMedia in js/quiz.js) */
@@ -56,7 +55,7 @@
     min-height: 96px;
     padding: 14px 16px;
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--color);
     box-shadow: 0 5px 0 var(--edge);
     color: #fff;
@@ -70,7 +69,7 @@
 .choice:hover:not(:disabled)  { transform: translateY(-2px); }
 .choice:active:not(:disabled) { transform: translateY(2px); }
 .choice:disabled { cursor: default; }
-.choice > span:first-child { flex: 1; overflow-wrap: anywhere; }
+.choice > span:first-child { flex: 1; }
 .choice .badge { background: rgba(0,0,0,.3); font-size: .95rem; }
 
 .choice::before, .choice::after { flex: none; font-size: 1.8rem; line-height: 1; }

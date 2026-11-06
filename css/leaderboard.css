@@ -1,0 +1,7 @@
+/* leaderboard.css - scoreboard page only */
+
+body { text-align: center; }
+
+#leaderboard { max-width: 520px; margin: 20px auto; text-align: left; }
+.participant-score { flex: none; font-weight: 800; }
+h4 { margin-top: 24px; opacity: .8; }

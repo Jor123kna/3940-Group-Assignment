@@ -12,9 +12,9 @@
 <body>
 
 <!-- data-auth="in" is shown to logged-in users, data-auth="out" to guests -->
-<header class="topbar loading">
+<header class="topbar row split loading">
   <a class="btn red" href="adminPage.html" data-auth="in" hidden>Admin</a>
-  <div>
+  <div class="row">
     <span id="who" class="who" data-auth="in" hidden></span>
     <a class="btn light" href="login.html" data-auth="out">Login</a>
     <button id="logoutBtn" class="btn light" type="button" data-auth="in" hidden>Logout</button>
