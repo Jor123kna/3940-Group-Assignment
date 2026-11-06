@@ -5,58 +5,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Trivia</title>
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/triviaSolo.css">
+  <link rel="stylesheet" href="css/quiz.css">
+  <link rel="stylesheet" href="css/solo.css">
+  <script src="js/common.js" defer></script>
+  <script src="js/quiz.js" defer></script>
+  <script src="js/solo.js" defer></script>
 </head>
 <body>
 <div class="app">
 
-  <a class="home-link" href="index.html">&larr; Home</a>
+  <a class="home" href="index.html">&larr; Home</a>
 
   <h1>Trivia</h1>
 
   <div class="layout">
 
-    <div class="category-panel">
+    <div class="panel category-panel">
 
       <h2>Categories</h2>
-      <nav id="categories" class="categories" aria-label="Categories"></nav>
+      <nav id="categories" aria-label="Categories"></nav>
 
     </div>
     
-    <div class="frame">
+    <div class="panel frame">
 
-      <p id="status" class="status">Loading categories...</p>
+      <p id="status" class="notice">Loading categories...</p>
 
       <section id="game" hidden>
         <p id="progress" class="progress"></p>
         
         <div class="question-box">
           <h2 id="questionText"></h2>
-          <img id="questionMedia" alt="" hidden>
+          <div id="questionMedia" class="media" hidden></div>
         </div>
         
-        <p id="feedback" class="feedback" aria-live="polite"></p>
+        <p id="feedback" class="notice" aria-live="polite"></p>
         
         <div id="choices" class="choices"></div>
         
-        <div class="footer">
-          <button type="button" id="backBtn" class="nav">Back</button>
-          <button type="button" id="nextBtn" class="nav">Next</button>
-        </div>
+        <footer>
+          <button type="button" id="backBtn" class="btn light">Back</button>
+          <button type="button" id="nextBtn" class="btn light">Next</button>
+        </footer>
         
       </section>
       
       <section id="results" class="results" hidden>
         <p>Quiz complete!</p>
-        <div id="score" class="score"></div>
+        <strong id="score"></strong>
         <p id="scoreText"></p>
-        <button type="button" id="againBtn" class="nav">Play again</button>
+        <button type="button" id="againBtn" class="btn light">Play again</button>
       </section>
       
     </div>
   </div>
 </div>
 
-<script src="js/triviaSolo.js"></script>
 </body>
 </html>
