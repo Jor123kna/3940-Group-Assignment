@@ -23,6 +23,7 @@
 }
 #questionList li.correct { background: var(--green); font-weight: 700; }
 
+/* ---------- admin panel grid ---------- */
 .admin-layout {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
