@@ -23,64 +23,74 @@
 
   <p id="message" class="notice" role="status" aria-live="polite"></p>
 
-  <div id="panels" hidden>
+  <div id="panels" class="admin-layout" hidden>
 
-    <!-- ================= categories ================= -->
-    <section class="panel">
-      <h2>Categories</h2>
-      <p id="categoriesEmpty" class="muted" hidden>No categories yet.</p>
-      <ul id="categoryList"></ul>
+    <div class="admin-left">
 
-      <h3>Add a category</h3>
-      <form id="categoryForm">
-        <label>Name
-          <input id="catName" type="text" maxlength="50">
-        </label>
-        <label>Description (optional)
-          <input id="catDesc" type="text" maxlength="200">
-        </label>
-        <button class="btn" type="submit">Add category</button>
-      </form>
-    </section>
-
-    <!-- ================= questions ================= -->
-    <section class="panel">
-      <h2 id="questionsHeading">Questions</h2>
-      <p id="questionsEmpty" class="muted">Select a category to see and manage its questions.</p>
-      <div id="questionList"></div>
-
-      <div id="addQuestion" hidden>
-        <h3>Add a question to <span id="addQuestionTo"></span></h3>
-
-        <form id="questionForm">
-          <label>Question
-            <textarea id="qText" maxlength="500"></textarea>
+      <!-- ================= categories ================= -->
+      <section class="panel">
+        <h2>Categories</h2>
+        <p id="categoriesEmpty" class="muted" hidden>No categories yet.</p>
+        <ul id="categoryList"></ul>
+  
+        <h3>Add a category</h3>
+        <form id="categoryForm">
+          <label>Name
+            <input id="catName" type="text" maxlength="50">
           </label>
-
-          <!-- the answer rows are added by js/admin.js -->
-          <fieldset id="answers">
-            <legend>Answers <span>&mdash; tick the correct one</span></legend>
-            <p class="muted">Fill in 2 to 4 answers. Leave the extra boxes empty for a true/false question.</p>
-          </fieldset>
-
-          <button class="btn" type="submit">Add question</button>
+          <label>Description (optional)
+            <input id="catDesc" type="text" maxlength="200">
+          </label>
+          <button class="btn" type="submit">Add category</button>
         </form>
-      </div>
-    </section>
+      </section>
 
-    <!-- ================= admin accounts ================= -->
-    <section class="panel">
-      <h2>Create Admin Accounts</h2>
-      <form id="accountForm">
-        <label>Username
-          <input id="uName" type="text" autocomplete="off">
-        </label>
-        <label>Password
-          <input id="password" type="password" autocomplete="new-password">
-        </label>
-        <button class="btn" type="submit">Create Account</button>
-      </form>
-    </section>
+      <!-- ================= admin accounts ================= -->
+      <section class="panel">
+        <h2>Create Admin Accounts</h2>
+        <form id="accountForm">
+          <label>Username
+            <input id="uName" type="text" autocomplete="off">
+          </label>
+          <label>Password
+            <input id="password" type="password" autocomplete="new-password">
+          </label>
+          <button class="btn" type="submit">Create Account</button>
+        </form>
+      </section>
+
+    </div>
+
+    <div class="admin-right">
+
+      <!-- ================= questions ================= -->
+      <section class="panel">
+        <h2 id="questionsHeading">Questions</h2>
+        <p id="questionsEmpty" class="muted">Select a category to see and manage its questions.</p>
+        <div id="questionList"></div>
+  
+        <div id="addQuestion" hidden>
+          <h3>Add a question to <span id="addQuestionTo"></span></h3>
+  
+          <form id="questionForm">
+            <label>Question
+              <textarea id="qText" maxlength="500"></textarea>
+            </label>
+  
+            <!-- the answer rows are added by js/admin.js -->
+            <fieldset id="answers">
+              <legend>Answers <span>&mdash; tick the correct one</span></legend>
+              <p class="muted">Fill in 2 to 4 answers. Leave the extra boxes empty for a true/false question.</p>
+            </fieldset>
+  
+            <button class="btn" type="submit">Add question</button>
+          </form>
+        </div>
+      </section>
+
+    </div>
+
+
 
   </div>
 </div>
