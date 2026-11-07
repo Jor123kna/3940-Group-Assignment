@@ -1,0 +1,19 @@
+{
+  "name": "front-end-selenium",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test-runner.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "selenium-webdriver": "^4.51.0"
+  }
+}
