@@ -36,22 +36,12 @@ docker run -d -p 8082:8080 --name trivia-app trivia-app
 
 15. Click "Multiplayer Quiz"
 16. Enter a display name and save it.
-17. An admin must create a group in order for the user to join it.
-
-- In group mode:
-- Join a group of trivia competitors
-- Moderator chooses trivia category
-  - Admin can also add a category
-  - If admin adds a question live, it doesn't show up live in the quiz
-- Wait for the admin to broadcast a question (moderator chooses question)
-- Copy of solo quiz, only displayed if admin chooses to
-- Points added whenever question is answered correctly
-- Whatever index admin chooses -> question displayed
-- Categories: art, english, geography, health, history, math, physics, science
--
--
--
--
+17. An admin must create a group in order for the user to join it. Login as an admin, who will be taken to a new landing page that has an "Admin" button in the top-left corner. Clicking that button takes the admin to the Admin page, where they can add/remove/manage categories. They can also add/remove/manage questions. At the bottom, there is a "Create Admin Account" option allowing existing admins to create more admin accounts with users and passwords.
+18. When the admin clicks on "Multiplayer" mode, they are prompted with the option to create a new group with a group name. They must click "Create group". Admins have the ability to close a group by clicking "Close group". They can also view how many members have joined their group.
+19. A guest playing the game is granted the ability to join this new group. Once they join it, they must wait for the admin to provide a question live as a moderator of the quiz.
+20. Admins can pick a category and use the "Next" and "Back buttons to browse through questions to project to the players in their group. They must click "Ask Group" for the question to appear on the player's screen. They have the option to repeat the question with the "Ask again" button.
+21. The user answers the question and are granted a point for choosing correctly. Points are accumulated and displayed on a Leaderboard visible to both the players and admin.
+22. The quiz ends once the admin closes the group.
 
 ## Contributors
 
