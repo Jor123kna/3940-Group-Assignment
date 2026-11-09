@@ -1,2 +1,4 @@
 Test/out/
 Test/Front-End-Selenium/node_modules/
+.vscode
+WEB-INF/classes/*.class
