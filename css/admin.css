@@ -23,6 +23,25 @@
 }
 #questionList li.correct { background: var(--green); font-weight: 700; }
 
+/* ---------- admin panel grid ---------- */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-self: start;
+}
+
+.admin-right {
+  min-width: 0;
+}
+
 /* ---------- add-question form ---------- */
 #answers .muted { margin-bottom: 10px; font-size: .85rem; }
 
