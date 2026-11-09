@@ -1,52 +1,76 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trivia - Multiplayer Player</title>
-    <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/quiz.css" />
-    <link rel="stylesheet" href="css/board.css" />
-    <link rel="stylesheet" href="css/lobby.css" />
-    <script src="js/common.js" defer></script>
-    <script src="js/quiz.js" defer></script>
-    <script src="js/lobby/hub.js" defer></script>
-    <script src="js/lobby/admin.js" defer></script>
-    <script src="js/lobby/tablet.js" defer></script>
-    <script src="js/lobby.js" defer></script>
-  </head>
-  <body>
-    <main>
-      <header>
-        <a class="home" href="index.html">&larr; Home</a>
-        <h1>Trivia</h1>
-        <p>Multiplayer Quiz</p>
-        <span id="connection" class="connection" data-state="try" role="status" aria-live="polite">Connecting...</span>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trivia - Multiplayer Player</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/quiz.css" />
+  <link rel="stylesheet" href="css/board.css" />
+  <link rel="stylesheet" href="css/lobby.css" />
+  <style>
+    /* Categories on the left, quiz on the right (same layout as triviaSolo) */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(180px, 240px) 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .category-panel nav { display: flex; flex-direction: column; gap: 8px; }
+    .category-panel nav > button,
+    .category-panel nav > a { width: 100%; text-align: left; }
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      .category-panel nav { flex-direction: row; flex-wrap: wrap; }
+      .category-panel nav > button,
+      .category-panel nav > a { width: auto; }
+    }
+  </style>
+  <script src="js/common.js" defer></script>
+  <script src="js/quiz.js" defer></script>
+  <script src="js/lobby/hub.js" defer></script>
+  <script src="js/lobby/admin.js" defer></script>
+  <script src="js/lobby/tablet.js" defer></script>
+  <script src="js/lobby.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <a class="home" href="index.html">&larr; Home</a>
+    <h1>Trivia</h1>
+    <p>Multiplayer Quiz</p>
+    <span id="connection" class="connection" data-state="try" role="status" aria-live="polite">Connecting...</span>
+  </header>
 
-      <p id="notice" class="notice" role="alert"></p>
+  <p id="notice" class="notice" role="alert"></p>
 
-      <!-- Staff host controls are added to the original player page. -->
-      <div id="adminView" hidden>
-        <section class="panel">
-          <h2>Your group</h2>
-          <form id="groupForm">
-            <label>Group name
-              <input id="groupName" type="text" maxlength="30" autocomplete="off" />
-            </label>
-            <button class="btn" type="submit">Create group</button>
-          </form>
-          <div id="groupInfo" hidden>
-            <p id="groupTitle"></p>
-            <ul id="members"></ul>
-            <button id="closeGroupBtn" class="btn red" type="button">Close group</button>
-          </div>
-        </section>
+  <!-- Staff host controls are added to the original player page. -->
+  <div id="adminView" hidden>
+    <section class="panel">
+      <h2>Your group</h2>
+      <form id="groupForm">
+        <label>Group name
+          <input id="groupName" type="text" maxlength="30" autocomplete="off" />
+        </label>
+        <button class="btn" type="submit">Create group</button>
+      </form>
+      <div id="groupInfo" hidden>
+        <p id="groupTitle"></p>
+        <ul id="members"></ul>
+        <button id="closeGroupBtn" class="btn red" type="button">Close group</button>
+      </div>
+    </section>
 
-        <section id="askPanel" class="panel" hidden>
-          <h2>Pick a quiz</h2>
-          <p id="quizStatus" class="notice" data-kind="info">Loading categories...</p>
+    <section id="askPanel" hidden>
+      <div class="layout">
+
+        <div class="panel category-panel">
+          <h2>Categories</h2>
           <nav id="quizCategories" aria-label="Quiz categories"></nav>
+        </div>
+
+        <div class="panel frame">
+          <p id="quizStatus" class="notice" data-kind="info">Loading categories...</p>
           <div id="quizPreview" hidden>
             <p class="progress">
               <span id="quizProgress"></span>
@@ -74,70 +98,73 @@
           <h3>Leaderboard</h3>
           <p id="noBoard" class="muted">Nobody has joined yet.</p>
           <ol id="adminBoard" class="board" hidden></ol>
-        </section>
+        </div>
+
       </div>
+    </section>
+  </div>
 
-      <div id="tabletView">
-        <form id="nameForm" class="panel">
-          <label>Your name
-            <input id="nameInput" type="text" maxlength="20" autocomplete="off" placeholder="For example Grandma" />
-          </label>
-          <button class="btn small" type="submit">Save name</button>
-          <p id="nameHint" class="muted"></p>
-          <p id="nameNotice" class="notice" role="status"></p>
-        </form>
+  <div id="tabletView">
+    <form id="nameForm" class="panel">
+      <label>Your name
+        <input id="nameInput" type="text" maxlength="20" autocomplete="off" placeholder="For example Grandma" />
+      </label>
+      <button class="btn small" type="submit">Save name</button>
+      <p id="nameHint" class="muted"></p>
+      <p id="nameNotice" class="notice" role="status"></p>
+    </form>
 
-        <section id="groupsPanel" class="panel">
-          <h2>Join a group</h2>
-          <p id="noGroups" class="muted">No groups yet. Waiting for an admin to create one...</p>
-          <ul id="groupList"></ul>
+    <section id="groupsPanel" class="panel">
+      <h2>Join a group</h2>
+      <p id="noGroups" class="muted">No groups yet. Waiting for an admin to create one...</p>
+      <ul id="groupList"></ul>
+    </section>
+
+    <section id="joinedPanel" hidden>
+      <header class="row split top">
+        <h2 id="joinedName"></h2>
+        <button id="leaveBtn" class="btn light small" type="button">Leave group</button>
+      </header>
+
+      <p id="waiting" class="muted">Waiting for the admin to send a question...</p>
+
+      <section class="panel game-panel" aria-label="Multiplayer quiz" id="quiz" hidden>
+        <div class="game-info row split wrap">
+          <p>Player: <strong id="playerName">Guest</strong></p>
+          <p class="timer">Time left: <strong id="timeRemaining">30 seconds</strong></p>
+          <p>Score: <strong id="playerScore">0 points</strong></p>
+        </div>
+
+        <p class="progress">
+          <span id="categoryName">Geography</span> &bull;
+          <span id="questionNumber">Question 1 of 10</span>
+        </p>
+        <section class="question-box" aria-labelledby="questionText">
+          <h2 id="questionText">What is the capital of Canada?</h2>
+          <div id="questionMedia" class="media" hidden></div>
         </section>
 
-        <section id="joinedPanel" hidden>
-          <header class="row split top">
-            <h2 id="joinedName"></h2>
-            <button id="leaveBtn" class="btn light small" type="button">Leave group</button>
-          </header>
+        <p id="feedback" class="notice" aria-live="polite"></p>
+        <fieldset>
+          <legend>Choose one answer</legend>
+          <div id="choices" class="choices"></div>
+        </fieldset>
+        <button type="button" class="btn light" id="submitAnswer">Submit Answer</button>
+        <p class="muted host-note" id="gameStatus" aria-live="polite">
+          The host controls when the next question appears.
+        </p>
+      </section>
 
-          <p id="waiting" class="muted">Waiting for the admin to send a question...</p>
+      <h3>Leaderboard</h3>
+      <p id="noScores" class="muted">No scores yet.</p>
+      <ol id="board" class="board" hidden></ol>
+    </section>
+  </div>
 
-          <section class="panel game-panel" aria-label="Multiplayer quiz" id="quiz" hidden>
-            <div class="game-info row split wrap">
-              <p>Player: <strong id="playerName">Guest</strong></p>
-              <p class="timer">Time left: <strong id="timeRemaining">30 seconds</strong></p>
-              <p>Score: <strong id="playerScore">0 points</strong></p>
-            </div>
-
-            <p class="progress">
-              <span id="categoryName">Geography</span> &bull;
-              <span id="questionNumber">Question 1 of 10</span>
-            </p>
-            <section class="question-box" aria-labelledby="questionText">
-              <h2 id="questionText">What is the capital of Canada?</h2>
-              <div id="questionMedia" class="media" hidden></div>
-            </section>
-
-            <p id="feedback" class="notice" aria-live="polite"></p>
-            <fieldset>
-              <legend>Choose one answer</legend>
-              <div id="choices" class="choices"></div>
-            </fieldset>
-            <button type="button" class="btn light" id="submitAnswer">Submit Answer</button>
-            <p class="muted host-note" id="gameStatus" aria-live="polite">
-              The host controls when the next question appears.
-            </p>
-          </section>
-
-          <h3>Leaderboard</h3>
-          <p id="noScores" class="muted">No scores yet.</p>
-          <ol id="board" class="board" hidden></ol>
-        </section>
-      </div>
-
-      <details>
-        <summary>Connection log</summary>
-        <textarea id="log" rows="8" readonly></textarea>
-      </details>
-    </main>
-  </body>
+  <details>
+    <summary>Connection log</summary>
+    <textarea id="log" rows="8" readonly></textarea>
+  </details>
+</main>
+</body>
 </html>
