@@ -16,6 +16,7 @@ const BASE_URL = "http://localhost:8081/3940-Group-Assignment/";
 const TESTS = [
   require("./tests/home.js"),
   require("./tests/solo.js"),
+  require("./tests/login.js"),
   require("./tests/multiplayer.js"),
   require("./tests/apis.js"),
 ].flat();
@@ -27,6 +28,8 @@ const TESTS = [
   // Run tests
   for (const test of TESTS) {
     try {
+      await driver.get(BASE_URL + (test.path || ""));
+      await driver.manage().deleteAllCookies();
       await driver.get(BASE_URL + (test.path || ""));
 
       await test.run(driver);

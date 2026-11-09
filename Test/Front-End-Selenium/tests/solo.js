@@ -81,7 +81,7 @@ async function testQuestionAnswer(driver) {
   const feedback = await driver.wait(
     async () => {
       const correct = await driver.findElements(
-        By.id(`[class*="feedback"][class*="correct"]`),
+        By.css(`[class*="feedback"][class*="correct"]`),
       );
       const incorrect = await driver.findElements(
         By.css(`[class*="feedback"][class*="wrong"]`),
