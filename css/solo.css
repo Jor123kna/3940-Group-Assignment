@@ -1,6 +1,61 @@
-.app { max-width: 880px; }
+/* solo.css - solo quiz page only */
+
+body { padding: 20px 14px 40px; }
+.app { max-width: 1400px; width: 100%; }
 .home { margin-bottom: 6px; }
 
-#categories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
-#score { font-size: 3rem; }
+.layout {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* ---------- category list on the left ---------- */
+.category-panel {
+    display: flex;
+    flex-direction: column;
+    height: 75vh;
+    min-height: 0;
+    padding: 16px 8px 16px 16px;
+    overflow: hidden;
+}
+.category-panel h2 {
+    flex-shrink: 0;
+    margin: 0 0 .875rem;
+    text-align: center;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+}
+
+#categories {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 10px;
+    padding: 4px 1em 4px 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.35) transparent;
+}
+#categories .tab { flex: 0 0 auto; width: 100%; }
+
+/* ---------- the frame that holds the quiz ---------- */
+.frame {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: max(75vh, 25rem);
+    min-width: 0;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
 footer .btn { min-width: 110px; }
+#score { font-size: 3rem; }
+
+@media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    .category-panel { height: auto; max-height: 14rem; }
+}
