@@ -8,24 +8,7 @@
   <link rel="stylesheet" href="css/quiz.css" />
   <link rel="stylesheet" href="css/board.css" />
   <link rel="stylesheet" href="css/lobby.css" />
-  <style>
-    /* Categories on the left, quiz on the right (same layout as triviaSolo) */
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(180px, 240px) 1fr;
-      gap: 16px;
-      align-items: start;
-    }
-    .category-panel nav { display: flex; flex-direction: column; gap: 8px; }
-    .category-panel nav > button,
-    .category-panel nav > a { width: 100%; text-align: left; }
-    @media (max-width: 700px) {
-      .layout { grid-template-columns: 1fr; }
-      .category-panel nav { flex-direction: row; flex-wrap: wrap; }
-      .category-panel nav > button,
-      .category-panel nav > a { width: auto; }
-    }
-  </style>
+  <link rel="stylesheet" href="css/triviaUser.css" />
   <script src="js/common.js" defer></script>
   <script src="js/quiz.js" defer></script>
   <script src="js/lobby/hub.js" defer></script>
