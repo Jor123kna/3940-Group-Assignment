@@ -45,7 +45,7 @@ $("logoutBtn").onclick = async () => {
 // The answer rows: a "correct" radio button and a text box, repeated ANSWER_SLOTS times.
 for (let i = 0; i < ANSWER_SLOTS; i++) {
     const n = i + 1;
-    $("answers").append(el("div", {},
+    $("answers").append(el("div", { className: "row" },
         el("input", { type: "radio", name: "correct", value: i, defaultChecked: i === 0, ariaLabel: `Answer ${n} is correct` }),
         el("input", { type: "text", maxLength: 150, placeholder: `Answer ${n}${i >= 2 ? " (optional)" : ""}` })
     ));
@@ -72,10 +72,10 @@ async function loadCategories() {
 function renderCategories() {
     $("categoriesEmpty").hidden = categories.length > 0;
 
-    $("categoryList").replaceChildren(...categories.map((category) => el("li", {},
+    $("categoryList").replaceChildren(...categories.map((category) => el("li", { className: "row" },
         el("button", {
             type: "button",
-            className: category === selected ? "tab selected" : "tab",
+            className: category === selected ? "tab row split grow selected" : "tab row split grow",
             onclick: () => selectCategory(category)
         },
             el("span", {}, category.category_name),
@@ -189,7 +189,7 @@ function renderQuestions(questions) {
     showQuestionsNote(questions.length === 0 ? "There are no questions in this category yet." : "");
 
     $("questionList").replaceChildren(...questions.map((q) => el("article", { className: "card" },
-        el("header", {},
+        el("header", { className: "row split top" },
             el("p", {}, q.question_text),
             el("button", {
                 type: "button",
@@ -252,6 +252,29 @@ $("questionForm").onsubmit = async (event) => {
         say("Question added.");
         if (await loadCategories()) loadQuestions();
         $("qText").focus();
+    } catch (e) {
+        say(e.message, true);
+    } finally {
+        event.submitter.disabled = false;
+    }
+};
+
+// ---------- admin accounts ----------
+
+$("accountForm").onsubmit = async (event) => {
+    event.preventDefault();
+
+    const username = $("uName").value.trim();
+    const password = $("password").value;
+
+    if (username === "") { say("Enter a username.", true); $("uName").focus(); return; }
+    if (password === "") { say("Enter a password.", true); $("password").focus(); return; }
+
+    event.submitter.disabled = true;
+    try {
+        await api("POST", "admin/account-add", { username, password });
+        event.target.reset();
+        say("Account created.");
     } catch (e) {
         say(e.message, true);
     } finally {

@@ -1,46 +1,40 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Trivia</title>
-    <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/index.css" />
-    <script src="js/common.js" defer></script>
-    <script src="js/index.js" defer></script>
-  </head>
-  <body>
-    <!-- data-auth="in" is shown to logged-in users, data-auth="out" to guests -->
-    <header class="topbar loading">
-      <a class="btn red" href="adminPage.html" data-auth="in" hidden>Admin</a>
-      <div>
-        <span id="who" class="who" data-auth="in" hidden></span>
-        <a class="btn light" href="login.html" data-auth="out">Login</a>
-        <button
-          id="logoutBtn"
-          class="btn light"
-          type="button"
-          data-auth="in"
-          hidden
-        >
-          Logout
-        </button>
-      </div>
-    </header>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trivia</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/index.css">
+  <script src="js/common.js" defer></script>
+  <script src="js/index.js" defer></script>
+</head>
+<body>
 
-    <main>
-      <h1>Trivia</h1>
+<!-- data-auth="in" is shown to logged-in users, data-auth="out" to guests -->
+<header class="topbar row split loading">
+  <a class="btn red" href="adminPage.html" data-auth="in" hidden>Admin</a>
+  <div class="row">
+    <span id="who" class="who" data-auth="in" hidden></span>
+    <a class="btn light" href="login.html" data-auth="out">Login</a>
+    <button id="logoutBtn" class="btn light" type="button" data-auth="in" hidden>Logout</button>
+  </div>
+</header>
 
-      <nav>
-        <a class="blue" href="triviaSolo.html" data-icon="&#9650;">
-          <strong>Solo Quiz</strong>
-          <small>Test yourself</small>
-        </a>
-        <a class="green" href="triviaUser.html" data-icon="&#9679;">
-          <strong>Multiplayer Quiz</strong>
-          <small>Play with friends</small>
-        </a>
-      </nav>
-    </main>
-  </body>
+<main>
+  <h1>Trivia</h1>
+
+  <nav>
+    <a class="blue" href="triviaSolo.html" data-icon="&#9650;">
+      <strong>Solo Quiz</strong>
+      <small>Test yourself</small>
+    </a>
+    <a class="green" href="triviaUser.html" data-icon="&#9679;">
+      <strong>Multiplayer Quiz</strong>
+      <small>Play with friends</small>
+    </a>
+  </nav>
+</main>
+
+</body>
 </html>

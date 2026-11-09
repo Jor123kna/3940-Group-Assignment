@@ -1,5 +1,48 @@
 # Group Assignment 1 - Multimedia Trivia WebApp
 
+## Tutorial
+
+**Requirements:** any IDE, Tomcat, ability to git clone the repo, Docker Desktop, Java 17
+
+1. Pull the repository and save it to an easily accessible folder on your computer.
+2. Open the project folder in any IDE.
+3. Open a new terminal and navigate to the project's root directory.
+4. Open Docker Desktop and make sure it is running.
+5. Build the Docker image using the project's Dockerfile
+
+```
+docker build -t trivia-app
+```
+
+6. Start the docker container.
+
+```
+docker run -d -p 8082:8080 --name trivia-app trivia-app
+```
+
+7. Open a web browser and navigate to http://localhost:8082/index.html
+8. The user is taken to the landing page.
+
+## Solo Mode
+
+9. Click "Solo Quiz".
+10. Choose a trivia category.
+11. The first of 8 questions will pop up on the page, alongside a video or image corresponding to the question. Read the question and select one of four multiple-choice answers.
+12. Upon button-click, the user is told if they answered correctly or not. They navigate to the next question throught the "Next" button on the bottom-right of the page. They can return to questions by clicking on the "Back" button on the bottom-left of the page but cannot retry the question.
+13. Keep answering questions until the quiz finishes. Upon completion, the user is given their score in that quiz category and is provided the option to play again. By clicking "Play Again", they are taken to the same quiz, or given the list of categories to choose another.
+14. At any point during the quiz, the user is able to switch categories, wherein a new quiz of eight questions is launched. The user is also able to click the "Home" arrow at the top-left, which takes them back to the landing page.
+
+## Multiplayer Mode
+
+15. Click "Multiplayer Quiz"
+16. Enter a display name and save it.
+17. An admin must create a group in order for the user to join it. Login as an admin, who will be taken to a new landing page that has an "Admin" button in the top-left corner. Clicking that button takes the admin to the Admin page, where they can add/remove/manage categories. They can also add/remove/manage questions. At the bottom, there is a "Create Admin Account" option allowing existing admins to create more admin accounts with users and passwords.
+18. When the admin clicks on "Multiplayer" mode, they are prompted with the option to create a new group with a group name. They must click "Create group". Admins have the ability to close a group by clicking "Close group". They can also view how many members have joined their group.
+19. A guest playing the game is granted the ability to join this new group. Once they join it, they must wait for the admin to provide a question live as a moderator of the quiz.
+20. Admins can pick a category and use the "Next" and "Back buttons to browse through questions to project to the players in their group. They must click "Ask Group" for the question to appear on the player's screen. They have the option to repeat the question with the "Ask again" button.
+21. The user answers the question and are granted a point for choosing correctly. Points are accumulated and displayed on a Leaderboard visible to both the players and admin.
+22. The quiz ends once the admin closes the group.
+
 ## Contributors
 
 Thank you to everyone in Set G for making this project possible.
@@ -51,9 +94,6 @@ Thank you to everyone in Set G for making this project possible.
   - Index page design
   - Staff moderator mode
   - Leaderboard page
-- Umanga Bajgai
-  - Index/login/trivia admin/lobby/trivia user page functionality
-  - Code cleanup
 - Ziad Malik
   - Front-end/back-end integration
   - Tomcat integration
@@ -86,6 +126,9 @@ Thank you to everyone in Set G for making this project possible.
   - Individual quiz session tests
   - Quiz API route tests
   - New user tests
+- Umanga Bajgai
+  - Index/login/trivia admin/lobby/trivia user page functionality
+  - Code cleanup
 - Yehor Skudilov
   - Tomcat connection tests
   - SQL injection/sercurity testing for login and signup
@@ -206,28 +249,3 @@ End Users: Seniors in homes, Children in classrooms, the Authorized Users/Modera
 - Git / GitHub
 - Figma
 - Google Docs
-
-## Tutorial
-
-**Requirements:** nny IDE, Tomcat, ability to git clone the repo, and Java 17
-
-1. Pull the repository and save it to an easily accessible folder on your computer.
-
-- Login, authenticated users taken to landing page
-- Choose between solo and group mode
-- In group mode:
-- Join a group of trivia competitors
-- Moderator chooses trivia category
-  - Admin can also add a category
-  - If admin adds a question live, it doesn't show up live in the quiz
-- Wait for the admin to broadcast a question (moderator chooses question)
-- copy of solo quiz, only displayed if admin chooses to
-- Points added whenever question is answered correctly
-- Whatever index admin chooses -> question displayed
-- Categories: art, english, geography, health, history, math, physics, science
-- Landing solo or multiplayer
--
--
-- need to know what happens when we delete questions live
-- parsing to get to online media
--

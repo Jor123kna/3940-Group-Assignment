@@ -1,3 +1,13 @@
+/* lobby.css - multiplayer page only (tablet players and the admin host). */
+
+body { font-size: 20px; line-height: 1.5; }
+main { max-width: 1120px; margin: 0 auto; }
+main > header { margin-bottom: 20px; text-align: center; }
+main > header h1 { margin: 0; font-size: 2.5rem; }
+main > header p { margin: 4px 0; }
+
+.panel { margin-bottom: 18px; }
+
 /* ---------- connection indicator ---------- */
 .connection { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; }
 .connection::before {
@@ -11,44 +21,22 @@
 .connection[data-state="off"] { --dot: var(--red); }
 .connection[data-state="try"] { --dot: var(--yellow); }
 
-.panel { margin-bottom: 18px; }
-
 /* ---------- admin: group ---------- */
-#groupTitle { margin: 0 0 10px; font-size: 1.15rem; font-weight: 800; overflow-wrap: anywhere; }
+#groupTitle { margin: 0 0 10px; font-size: 1.15rem; font-weight: 800; }
 #members { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-#members li { padding: 6px 12px; border-radius: 99px; background: rgba(255,255,255,.12); font-weight: 700; overflow-wrap: anywhere; }
+#members li { padding: 6px 12px; border-radius: 99px; background: var(--surface); font-weight: 700; }
 
 /* ---------- admin: pick a quiz from the database ---------- */
 #quizCategories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
-#quizCategories .tab:disabled { opacity: .45; cursor: not-allowed; }
 #quizPreview { margin-bottom: 8px; }
 #quizProgress { margin-right: 6px; }
-.controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
 
 /* ---------- admin: answers received ---------- */
-#results { padding: 14px; border-radius: 8px; background: rgba(255,255,255,.08); }
-#resultsQuestion { margin: 0 0 10px; font-weight: 800; overflow-wrap: anywhere; }
-#resultsList li { margin-bottom: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,.1); overflow-wrap: anywhere; }
+#results { padding: 14px; border-radius: var(--radius); background: var(--surface); }
+#resultsQuestion { margin: 0 0 10px; font-weight: 800; }
+#resultsList li { margin-bottom: 8px; padding: 8px 12px; border-radius: var(--radius); background: var(--surface); }
 #resultsList li.correct { background: var(--green); }
 #resultsList small { display: block; opacity: .85; }
-
-/* ---------- the leaderboard (admin and tablets) ---------- */
-.board { counter-reset: place; }
-.board li {
-    counter-increment: place;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: rgba(255,255,255,.1);
-}
-.board li::before { content: counter(place); flex: none; min-width: 1.4em; font-weight: 800; opacity: .7; }
-.board li > span { flex: 1; font-weight: 700; overflow-wrap: anywhere; }
-.board li > strong { flex: none; }
-.board li.leader { background: var(--gold); }       /* the leader */
-.board li.me { outline: 3px solid #fff; }                /* that is you */
 #revealBtn { margin-top: 10px; }
 
 /* ---------- tablet: my name ---------- */
@@ -58,10 +46,24 @@
 
 /* ---------- tablet: groups ---------- */
 #groupList li { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-#groupList strong { font-weight: 800; overflow-wrap: anywhere; }
-#joinedPanel > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-#joinedPanel > header h2 { margin: 0; overflow-wrap: anywhere; }
+#groupList strong { font-weight: 800; }
+#joinedPanel > header { margin-bottom: 12px; }
+#joinedPanel > header h2 { margin: 0; }
+
+/* ---------- tablet: the question being played ---------- */
+.game-panel { padding: 24px; }
+.game-info { margin-bottom: 20px; }
+.game-info p { margin: 0; }
+.timer { font-size: 1.5rem; }
+.game-panel fieldset { min-width: 0; margin-top: 24px; }
+.game-panel legend { margin-bottom: 12px; }
+#submitAnswer { display: block; margin: 24px auto 0; padding: 14px 28px; }
+.host-note { margin-top: 20px; text-align: center; }
 
 /* ---------- connection log ---------- */
 details { margin-top: 24px; }
 textarea { margin-top: 8px; font-family: monospace; font-size: .85rem; }
+
+@media (max-width: 560px) {
+    .game-panel { padding: 16px; }
+}

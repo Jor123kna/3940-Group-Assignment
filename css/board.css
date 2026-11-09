@@ -1,0 +1,18 @@
+/* board.css - numbered leaderboard list, used by the multiplayer page and the scoreboard page. */
+
+.board { counter-reset: place; }
+.board li {
+    counter-increment: place;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+.board li::before { content: counter(place); flex: none; min-width: 1.4em; font-weight: 800; opacity: .7; }
+.board li > span { flex: 1; font-weight: 700; }
+.board li > strong { flex: none; }
+.board li.leader { background: var(--gold); }        /* the leader */
+.board li.me { outline: 3px solid #fff; }            /* that is you */
